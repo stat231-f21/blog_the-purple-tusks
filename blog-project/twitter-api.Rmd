@@ -1,0 +1,65 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(csv)
+library(dplyr)
+library(rtweet)
+library(httpuv)
+library(tidytext)
+```
+
+```{r, authentification-token}
+# store api keys
+api_key <- "1zTkAFaSLvGEUnB2PPPe9nSqh"
+api_secret_key <- "1T0nQLQwSUZVqAPhfn3QB2TEy5X81ay8sUjAzNOSVLpEO92gMM"
+access_token <- "1269483564384444416-S4blcCi966TkuH8XKyboBD1OvlQQLk"
+access_token_secret <- "5vwTUNgZPiFdqyve3SKjsZm11vdNQFac46uEDXsG1vcGq"
+
+# authenticate via web broswer
+token <- create_token(
+  app = "blog-project",
+  consumer_key = api_key,
+  consumer_secret = api_secret_key,
+  access_token = access_token,
+  access_secret = access_token_secret)
+
+saveRDS(token, "~/.rtweet.rds")
+twitter_pat = "~/.rtweet.rds"
+
+get_token()
+```
+
+```{r post-tweet}
+#post_tweet("My bes fran finally got a calendar #uwu")
+```
+
+
+```{r}
+rstats_tweets <- search_tweets("#mentalhealth", n = 500,
+                                include_rts = FALSE)
+head(rstats_tweets, n =10)
+
+users <- search_users("#mentalhealth", n = 500)
+head(users, n = 10)
+
+length(unique(users$location))
+
+users %>%
+  count(location, sort = TRUE) %>%
+  mutate(location = reorder(location, n)) %>%
+  top_n(20) %>%
+  ggplot(aes(x = location, y = n)) + 
+  geom_col() + 
+  coord_flip() +
+  labs(x = "Count",
+       y = "Location", 
+       title = "Twitter users - unique locations")
+```
+
+
