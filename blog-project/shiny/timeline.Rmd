@@ -1,0 +1,62 @@
+---
+title: "Untitled"
+author: "dm"
+date: "11/1/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(formatR)
+library(DT)
+library(ggrepel)
+library(csv)
+library(ggplot2)
+```
+
+```{r combine-data}
+covid_19 <- read_csv("covid_19.csv")
+mental_health <- read_csv("mental_health.csv")
+
+mental_health <- mental_health %>%
+  rename(state = State, week = WEEK)
+
+covid_mental_health <- inner_join(mental_health, covid_19, by = c("state", "week"))
+covid_mental_health <- covid_mental_health %>%
+  mutate(state_case_percentage = total_cases/sum(total_cases)*100,
+         state_death_percentage = total_deaths/sum(total_deaths)*100)
+
+write_csv(covid_mental_health, "covid_mental_health.csv", append = FALSE)
+```
+
+
+```{r ggplot}
+# Basic line plot with points
+graph <- ggplot(covid_mental_health, aes(x=week)) + geom_point(aes(x=week, y=anxiety_percentage), color="red") +
+ geom_point(aes(x=week, y=depression_percentage), color="blue") +
+  geom_point(aes(y=state_death_percentage ),color="orange") +
+  geom_point(aes(y=state_case_percentage),color="pink") +
+  geom_line(aes(y=anxiety_percentage), color="red") +
+  geom_line(aes(y=depression_percentage), color="blue") +
+  geom_line(aes(y=state_case_percentage, color="pink")) +
+  geom_line(aes(y=state_death_percentage), color="orange") +
+  scale_y_continuous(trans='log10')
+
+graph
+
+```
+
+
+```{r}
+testgraph <- ggplot(covid_19, aes(x=week)) + 
+  geom_line(aes(y=percentage_cases), color="red") + 
+  geom_line(aes(y=percentage_deaths), color="blue") + 
+  geom_point(aes(y=percentage_cases), color="red") + 
+  geom_point(aes(y=percentage_deaths), color="blue") +
+  transition_reveal(week)
+```
+
