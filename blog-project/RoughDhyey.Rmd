@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
 ```{r, eval = FALSE, show_col_types = FALSE}
 library(dplyr)
 library(readr)
-uscovid <- read_csv("uscovid.csv")
+uscovid <- read_csv("data/covid/uscovid.csv")
 ```
 
 ```{r}
@@ -105,13 +105,31 @@ us_total_by_week <- us %>%
   group_by(week) %>%
   summarize(total_cases_us = sum(cases), total_deaths_us = sum(deaths))
 
-us_total_by_week
+national_total_by_week <- us_total_by_week %>%
+  mutate(state = "National") %>%
+  rename("total_cases" = total_cases_us,"total_deaths" = total_deaths_us)
 
-us_final <- inner_join(state_total_by_week,us_total_by_week,by = "week")
+final_state_total_by_week <- rbind(state_total_by_week,national_total_by_week)
 
-us_final_final <- us_final %>% 
-  mutate(percentage_cases = (total_cases/total_cases_us) *100,
-         percentage_deaths = (total_deaths/total_deaths_us) *100)
+us_total_by_state <- us %>%
+  group_by(state) %>%
+  summarize(total_cases_state_all_weeks = sum(cases), total_deaths_state_all_weeks = sum(deaths)) %>%
+  add_row(state="National",
+          total_cases_state_all_weeks=sum(us_total_by_state$total_cases_state_all_weeks),
+          total_deaths_state_all_weeks=sum(us_total_by_state$total_deaths_state_all_weeks))
+
+us_joined_spatial <- inner_join(final_state_total_by_week,us_total_by_week,by = "week")
+
+us_joined_bar <- inner_join(us_joined_spatial,us_total_by_state,by = "state")
+
+covid_us_final <- us_joined_bar %>% 
+  mutate(percentage_cases_spatial = (total_cases/total_cases_us) *100,
+         percentage_deaths_spatial = (total_deaths/total_deaths_us) *100,
+         percentage_cases_bar = (total_cases/total_cases_state_all_weeks) *100,
+         percentage_deaths_bar = (total_deaths/total_deaths_state_all_weeks) *100
+         )
+
+write.csv(covid_us_final, "covid_updated.csv")
 ```
 
 ```{r}
