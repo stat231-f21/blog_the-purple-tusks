@@ -268,8 +268,9 @@ write_csv(total_mental_health, "data/mental-health/total_mental_health.csv", app
 mental_health_1 <- read_csv("data/mental-health/mental_health_1.csv")
 mental_health_2 <- read_csv("data/mental-health/mental_health_2.csv")
 mental_health_3 <- read_csv("data/mental-health/mental_health_3.csv")
-mental_health_4 <- read_csv("data/mental-health/mental_health_3.csv")
+mental_health_4 <- read_csv("data/mental-health/mental_health_4.csv")
 total_mental_health <- read_csv("data/mental-health/total_mental_health.csv")
+averages <- read_csv("shiny/averages.csv")
 
 # add column with state names
 states <- averages %>%
@@ -296,9 +297,39 @@ new_mental_health <- final_mental_health %>%
 
 new_mental_health <- unique(new_mental_health)
 
-mental_health <- inner_join(states, new_mental_health, by = "EST_ST")
+new_mental_health <- inner_join(states, new_mental_health, by = "EST_ST")
+```
+
+
+```{r}
+mental_health_national <- total_mental_health %>%
+  mutate(EST_ST = as.numeric(EST_ST)) %>%
+  group_by(WEEK) %>%
+  summarize(count = n()) %>%
+  mutate(count = as.numeric(count))
+
+mental_health_national2 <- total_mental_health %>%
+  mutate(EST_ST = as.numeric(EST_ST)) %>%
+  group_by(WEEK) %>%
+  arrange(WEEK)
+
+final_mental_health_national <- inner_join(mental_health_national, mental_health_national2, by = c("WEEK")) 
+
+final_mental_health_national <- final_mental_health_national %>%
+  subset(select = -c(EST_ST)) %>%
+  add_column(EST_ST = 0)
+
+new_mental_health_national <- final_mental_health_national %>%
+  mutate(anxiety_percentage = sum(ANXIETY_ASSOCIATED)/count, depression_percentage = sum(DEPRESSION_ASSOCIATED)/count) %>%
+  subset(select = c(EST_ST, WEEK, count, anxiety_percentage, depression_percentage))
+
+new_mental_health_national <- unique(new_mental_health_national)
+
+new_mental_health_national <- new_mental_health_national %>%
+  add_column(State = "National")
+
+mental_health <- rbind(new_mental_health, new_mental_health_national)
 
 write_csv(mental_health, "data/mental-health/mental_health.csv", append = FALSE)
 ```
-
 
