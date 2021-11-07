@@ -3,10 +3,11 @@ library(shiny)
 library(tidyverse)
 library(formatR)
 library(csv)
+library(kableExtra)
 
 # import data
-covid_mental_health_longer <- read_csv("covid_mental_health_longer.csv")
-covid_mental_health_table <- read_csv("covid_mental_health_table.csv")
+timeline_graph <- read_csv("timeline_graph.csv")
+timeline_table <- read_csv("timeline_table.csv")
 
 #############################################################
 # Define choice values and labels for widgets (user inputs) #
@@ -17,17 +18,15 @@ covid_mental_health_table <- read_csv("covid_mental_health_table.csv")
 # For Timeline widgets:
 
 ## For selectInput choices
-state_choices <- unique(covid_mental_health_longer$state)
+state_choices <- unique(timeline_graph$state)
 
 ## For checkboxGroupInputchoices
-response_choices_values <- c("anxiety_percentage", "depression_percentage", "percentage_cases_state", "percentage_deaths_state")
-response_choices_names <- c("Anxiety", "Depression", "Covid Cases", "Covid Deaths")
-names(response_choices_values) <- response_choices_names
+response_choices <- unique(timeline_graph$response)
 
 # For Table widgets:
 
 ## For selectInput choices
-region_choices <- unique(covid_mental_health_table$Region)
+region_choices <- unique(timeline_table$state)
 
 ############
 #    ui    #
@@ -49,8 +48,8 @@ ui <- navbarPage(
                      selected = 1),
         checkboxGroupInput(inputId = "responsevar",
                     label = "Choose a response variable you want to plot:",
-                    choices = response_choices_values,
-                    selected = c("anxiety_percentage", "depression_percentage", "percentage_cases_state", "percentage_deaths_state"),
+                    choices = response_choices,
+                    selected = c("Anxiety", "Depression", "Covid Cases", "Covid Deaths", "Negative", "Positive"),
                     inline = TRUE),
         selectInput(inputId = "area",
                     label = "Choose a region:",
@@ -75,20 +74,20 @@ server <- function(input, output){
   
   # Timeline
   data_for_timeline <- reactive ({
-    data <- filter(covid_mental_health_longer, state %in% input$region, Response %in% input$responsevar)
+    data <- filter(timeline_graph, state %in% input$region, response %in% input$responsevar)
   })
   
   output$timeline <- renderPlot({
     ggplot(data = data_for_timeline(),
            mapping = aes(x = week,
-                         y = Percentage, 
-                         color = Response)) +
+                         y = percentage, 
+                         color = response)) +
       geom_line(aes(x = week,
-                    y = Percentage,
-                    color = Response)) +
+                    y = percentage,
+                    color = response)) +
       geom_point(aes(x = week,
-                     y = Percentage,
-                     color = Response)) + 
+                     y = percentage,
+                     color = response)) + 
       theme(plot.title = element_text(size=23), 
             plot.subtitle = element_text(size=20),
             axis.text = element_text(size=17),
@@ -96,18 +95,19 @@ server <- function(input, output){
             legend.text = element_text(size=17),
             legend.title = element_text(size=21),
             legend.key.size = unit(1, 'cm')) +
-      
-      scale_color_manual(labels = c("Anxiety", "Derpession", "Covid Cases", "Covid Deaths"), values = c("pink1", "turquoise2", "mediumpurple2", "springgreen2")) +
-      
+            scale_y_continuous(trans='log10') +
+
+      scale_colour_manual(values = c("Anxiety" = "palevioletred1", "Depression" = "yellow1", "Covid Cases" = "violet", "Covid Deaths" = "seagreen2", "Negative" = "slateblue1", "Positive" = "turquoise2")) +
       labs(title = "The Effects of COVID-19 on Mental Health, Physical Health, and Sentiment",
            subtitle = "During the Covid-19 Period",
            y = "Percentage",
            x = "Week")
   })
   
+  # Table
   data_for_table <- reactive({
-    data <- filter(covid_mental_health_table, Region %in% input$area) %>%
-      select(-Region)
+    data <- filter(timeline_table, state %in% input$area) %>%
+      select(-state)
   })
   
   output$table <- DT::renderDataTable({ 
