@@ -256,7 +256,8 @@ word_count <- senator_covid_words %>%
   summarise(total = n()) %>%
   pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
   mutate(sum = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
-  pivot_longer(-c(week,sum, state),names_to = "sentiments", values_to = "count")
+  pivot_longer(-c(week,sum, state),names_to = "sentiments", values_to = "count") %>% 
+  mutate(percentage = count / sum)
 
 word_count_national <- senator_covid_words %>%
   group_by(week,sentiment) %>%
