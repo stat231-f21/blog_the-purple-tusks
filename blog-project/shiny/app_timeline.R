@@ -6,6 +6,7 @@ library(csv)
 
 # import data
 covid_mental_health_longer <- read_csv("covid_mental_health_longer.csv")
+covid_mental_health_table <- read_csv("covid_mental_health_table.csv")
 
 #############################################################
 # Define choice values and labels for widgets (user inputs) #
@@ -19,10 +20,14 @@ covid_mental_health_longer <- read_csv("covid_mental_health_longer.csv")
 state_choices <- unique(covid_mental_health_longer$state)
 
 ## For checkboxGroupInputchoices
-response_choices <- unique(covid_mental_health_longer$Response)
+response_choices_values <- c("anxiety_percentage", "depression_percentage", "percentage_cases_state", "percentage_deaths_state")
+response_choices_names <- c("Anxiety", "Depression", "Covid Cases", "Covid Deaths")
+names(response_choices_values) <- response_choices_names
 
-## For sliderInput choices
+# For Table widgets:
 
+## For selectInput choices
+region_choices <- unique(covid_mental_health_table$Region)
 
 ############
 #    ui    #
@@ -39,18 +44,24 @@ ui <- navbarPage(
       sidebarPanel(
         
         selectInput(inputId = "region",
-                     label = "Choose a region you want to plot:",
+                     label = "Choose a region:",
                      choices = state_choices,
                      selected = 1),
         checkboxGroupInput(inputId = "responsevar",
                     label = "Choose a response variable you want to plot:",
-                    choices = response_choices,
+                    choices = response_choices_values,
                     selected = c("anxiety_percentage", "depression_percentage", "percentage_cases_state", "percentage_deaths_state"),
                     inline = TRUE),
+        selectInput(inputId = "area",
+                    label = "Choose a region:",
+                    choices = region_choices,
+                    selected = 1)
         
       ),
       
-      mainPanel(plotOutput(outputId = "timeline"))
+      mainPanel(plotOutput(outputId = "timeline"),
+                "Percentages of Indicators of Covid-19",
+                DT::dataTableOutput(outputId = "table"))
     )
   )
   
@@ -62,6 +73,7 @@ ui <- navbarPage(
 ############
 server <- function(input, output){
   
+  # Timeline
   data_for_timeline <- reactive ({
     data <- filter(covid_mental_health_longer, state %in% input$region, Response %in% input$responsevar)
   })
@@ -85,14 +97,21 @@ server <- function(input, output){
             legend.title = element_text(size=21),
             legend.key.size = unit(1, 'cm')) +
       
-      #scale_fill_manual("Response", 
-                        #values = c("anxiety_percentage" = "plum", 
-                                   #"Depression Score" = "paleturquoise1")) +
+      scale_color_manual(labels = c("Anxiety", "Derpession", "Covid Cases", "Covid Deaths"), values = c("pink1", "turquoise2", "mediumpurple2", "springgreen2")) +
       
       labs(title = "The Effects of COVID-19 on Mental Health, Physical Health, and Sentiment",
            subtitle = "During the Covid-19 Period",
-           y = "Date",
-           x = "Percentage")
+           y = "Percentage",
+           x = "Week")
+  })
+  
+  data_for_table <- reactive({
+    data <- filter(covid_mental_health_table, Region %in% input$area) %>%
+      select(-Region)
+  })
+  
+  output$table <- DT::renderDataTable({ 
+    data_for_table()
   })
 }
 
