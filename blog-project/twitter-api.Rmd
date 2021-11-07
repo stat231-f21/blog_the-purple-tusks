@@ -258,9 +258,9 @@ word_count <- senator_covid_words %>%
   pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
   mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
   pivot_longer(-c(week,total_tweets, state),names_to = "sentiments", values_to = "count") %>% 
-  mutate(percentage = count / total_tweets,
-         percentage_spatial = )
+  mutate(percentage = count * 100 / total_tweets)
 
+#add the percentage of that sentiment over the total number of that sentiment
 temp <- senator_covid_words %>%
   group_by(week,sentiment,state) %>%
   summarise(total = n()) %>%
@@ -271,8 +271,22 @@ temp <- senator_covid_words %>%
   summarise(total_sentiment = sum(count))
 
 word_count <- inner_join(word_count, temp, by = c("state","sentiments")) %>%
-  mutate(spatial_percentage = count * 100 / total_sentiment)
+  mutate(percentage_of_total_sentiment = count * 100 / total_sentiment)
 
+#add percentage of national sentiments
+temp <- senator_covid_words %>%
+  group_by(week,sentiment,state) %>%
+  summarise(total = n()) %>%
+  pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
+  mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
+  pivot_longer(-c(week,total_tweets, state),names_to = "sentiments", values_to = "count") %>%
+  group_by(week, sentiments) %>%
+  summarise(national_week_sentiment = sum(count))
+
+word_count <- inner_join(word_count, temp, by = c("week","sentiments")) %>%
+  mutate(percentage_of_national_sentiment = count * 100 / national_week_sentiment)
+
+#national sentiments
 word_count_national <- senator_covid_words %>%
   group_by(week,sentiment) %>%
   summarise(total = n()) %>%
