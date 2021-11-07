@@ -271,7 +271,7 @@ temp <- senator_covid_words %>%
   summarise(total_sentiment = sum(count))
 
 word_count <- inner_join(word_count, temp, by = c("state","sentiments")) %>%
-  mutate(spatial_percentage = count / total_sentiment)
+  mutate(spatial_percentage = count * 100 / total_sentiment)
 
 word_count_national <- senator_covid_words %>%
   group_by(week,sentiment) %>%
