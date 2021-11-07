@@ -241,6 +241,7 @@ for(i in 1:nrow(senator_tweets_covid)){
 }
 
 write_csv2(senator_tweets_covid, "data/textual/senator_tweets_covid.csv")
+senator_tweets_covid <- read_csv2("data/textual/senator_tweets_covid.csv")
 
 #tokenize the tweets
 senator_covid_words <- senator_tweets_covid %>%
@@ -255,16 +256,29 @@ word_count <- senator_covid_words %>%
   group_by(week,sentiment,state) %>%
   summarise(total = n()) %>%
   pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
-  mutate(sum = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
-  pivot_longer(-c(week,sum, state),names_to = "sentiments", values_to = "count") %>% 
-  mutate(percentage = count / sum)
+  mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
+  pivot_longer(-c(week,total_tweets, state),names_to = "sentiments", values_to = "count") %>% 
+  mutate(percentage = count / total_tweets,
+         percentage_spatial = )
+
+temp <- senator_covid_words %>%
+  group_by(week,sentiment,state) %>%
+  summarise(total = n()) %>%
+  pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
+  mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
+  pivot_longer(-c(week,total_tweets, state),names_to = "sentiments", values_to = "count") %>%
+  group_by(state, sentiments) %>%
+  summarise(total_sentiment = sum(count))
+
+word_count <- inner_join(word_count, temp, by = c("state","sentiments")) %>%
+  mutate(spatial_percentage = count / total_sentiment)
 
 word_count_national <- senator_covid_words %>%
   group_by(week,sentiment) %>%
   summarise(total = n()) %>%
   pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
-  mutate(sum = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
-  pivot_longer(-c(week,sum),names_to = "sentiments", values_to = "count")
+  mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
+  pivot_longer(-c(week,total_tweets),names_to = "sentiments", values_to = "count")
 
 write_csv2(word_count, "data/textual/twitter_sentiments.csv")
 
@@ -291,7 +305,7 @@ temp <- senator_tweets_covid %>%
   #get rid of stop words
   anti_join(stop_words, by = c("tokens" = "word"))
 
-
+#create a dataset of word counts with 
 senator_wordcloud <- tibble()
 
 for(i in 1:39){
@@ -311,8 +325,7 @@ for(i in 1:39){
 
 write_csv2(senator_wordcloud, "data/textual/senator_wordcloud.csv")
 
-senator_wordcloud
-
+#create a total one
 senator_wordcloud_total <- senator_tweets_covid %>%
   unnest_tokens(input = text, output = tokens) %>% 
   #get rid of stop words
