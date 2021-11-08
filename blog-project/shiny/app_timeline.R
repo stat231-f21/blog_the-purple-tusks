@@ -3,7 +3,7 @@ library(shiny)
 library(tidyverse)
 library(formatR)
 library(csv)
-library(kableExtra)
+library(utils)
 
 # import data
 timeline_graph <- read_csv("timeline_graph.csv")

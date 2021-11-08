@@ -16,6 +16,7 @@ library(DT)
 library(ggrepel)
 library(csv)
 library(ggplot2)
+library(utils)
 ```
 
 ```{r combine-data}
@@ -105,8 +106,16 @@ timeline_graph <-timeline_table %>%
     values_to = "percentage"
   )
 
-write_csv(timeline_table, "timeline_table.csv", append = FALSE)
-write_csv(timeline_graph, "timeline_graph.csv", append = FALSE)
+#write_csv(timeline_graph, "timeline_graph.csv", append = FALSE)
+
+write_csv(timeline_table, "timeline_table.csv")
+```
+
+```{r}
+timeline_table <- read_csv("timeline_table.csv")
+
+timeline_table_new <- timeline_table %>%
+  round(Negative, digits = 2)
 ```
 
 
