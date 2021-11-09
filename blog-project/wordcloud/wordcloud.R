@@ -10,6 +10,7 @@ library(ggwordcloud)
 # import data
 timeline_graph <- read_csv("timeline_graph.csv")
 word_cloud <- read_csv2("senator_wordcloud.csv")
+sentiments <- read_csv2("twitter_sentiments.csv")
 
 #############################################################
 # Define choice values and labels for widgets (user inputs) #
@@ -24,6 +25,8 @@ state_choices <- unique(timeline_graph$state)
 
 ## For checkboxGroupInputchoices
 response_choices <- unique(timeline_graph$response)
+
+sentiments_choices <- unique(sentiments$sentiments)
 
 ############
 #    ui    #
@@ -47,6 +50,10 @@ ui <- navbarPage(
                            label = "Choose a response variable you want to plot:",
                            choices = response_choices,
                            selected = c("Anxiety", "Depression", "Covid Cases", "Covid Deaths", "Negative", "Positive"),
+                           inline = TRUE),
+        checkboxGroupInput(inputId = "sentvar",
+                           label = "Choose sentiments you want to plot:",
+                           choices = sentiments_choices,
                            inline = TRUE),
         sliderInput(inputId ="weekslider",
                     label = "Choose a week timeframe",
@@ -80,26 +87,43 @@ server <- function(input, output){
     data <- filter(timeline_graph, 
                    state %in% input$region, 
                    response %in% input$responsevar,
-                   week %in% input$weekslider[1]:input$weekslider[2])
+                   week %in% input$weekslider[1]:input$weekslider[2],
+                   !(response %in% c("Positive","Negative")))
   })
   
   wc_data <- reactive({
     data <- word_cloud %>%
       filter(week %in% input$weekslider[1]:input$weekslider[2], 
-             state == input$region)
+             state == input$region) %>%
+      group_by(tokens, value) %>%
+      summarize(n = sum(n))
+  })
+  
+  sentiment_data <- reactive ({
+    data <- filter(sentiments, 
+                   state %in% input$region,
+                   week %in% input$weekslider[1]:input$weekslider[2],
+                   sentiments %in% input$sentvar)
   })
   
   output$timeline <- renderPlot({
     ggplot(data = data_for_timeline(),
            mapping = aes(x = week,
-                         y = percentage, 
-                         color = response)) +
+                         y = percentage)) +
       geom_line(aes(x = week,
                     y = percentage,
                     color = response)) +
       geom_point(aes(x = week,
                      y = percentage,
                      color = response)) + 
+      geom_line(data = sentiment_data(),
+                aes(x = week,
+                    y = percentage,
+                    color = sentiments)) +
+      geom_point(data = sentiment_data(),
+                 aes(x = week,
+                     y = percentage,
+                     color = sentiments)) +
       theme(plot.title = element_text(size=23), 
             plot.subtitle = element_text(size=20),
             axis.text = element_text(size=17),
@@ -108,17 +132,16 @@ server <- function(input, output){
             legend.title = element_text(size=21),
             legend.key.size = unit(1, 'cm')) +
             scale_y_continuous(trans='log10') +
-
-      scale_colour_manual(values = c("Anxiety" = "palevioletred1", "Depression" = "yellow1", "Covid Cases" = "violet", "Covid Deaths" = "seagreen2", "Negative" = "slateblue1", "Positive" = "turquoise2")) +
+      #scale_colour_manual(values = c("Anxiety" = "palevioletred1", "Depression" = "yellow1", "Covid Cases" = "violet", "Covid Deaths" = "seagreen2", "Negative" = "slateblue1", "Positive" = "turquoise2")) +
       labs(title = "The Effects of COVID-19 on Mental Health, Physical Health, and Sentiment",
            subtitle = "During the Covid-19 Period",
            y = "Percentage",
            x = "Week") +
-      scale_x_continuous(n.breaks = 39, breaks = c(1:39), limits = c(1,39))
+      scale_x_continuous(n.breaks = 13, limits = c(1,39))
   })
   
   output$wordcloud <- renderPlot({
-    wordcloud(words = wc_data()$tokens, freq = wc_data()$n, max.words = 30, scale=c(3.5,0.25))
+    wordcloud(words = wc_data()$tokens, freq = wc_data()$n, max.words = 30, scale=c(4,0.4))
   })
   
   # output$wordcloud <- renderPlot({
