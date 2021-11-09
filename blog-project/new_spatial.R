@@ -73,12 +73,20 @@ ui <- fluidPage(
 server <- function(input, output) {
     data_covid <- reactive({
         data <- covid_19_spatial %>%
-            filter(week %in% input$weekslider[1]:input$weekslider[2])
+            filter(week %in% input$weekslider[1]:input$weekslider[2])%>%
+            select(c("state", "percentage_cases_spatial", "percentage_deaths_spatial")) %>%
+            group_by(state) %>%
+            summarize(percentage_cases_spatial = mean(percentage_cases_spatial),
+                      percentage_deaths_spatial = mean(percentage_deaths_spatial))
     })
     
     data_mental <- reactive({
         data <- mental_health_spatial %>%
-            filter(week %in% input$weekslider[1]:input$weekslider[2])
+            filter(week %in% input$weekslider[1]:input$weekslider[2])%>%
+            select(c("state", "anxiety_percentage", "depression_percentage")) %>%
+            group_by(state) %>%
+            summarize(anxiety_percentage = mean(anxiety_percentage),
+                      depression_percentage = mean(depression_percentage))
     })
     
     data_sent <- reactive({
