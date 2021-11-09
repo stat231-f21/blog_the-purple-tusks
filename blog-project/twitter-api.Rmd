@@ -300,6 +300,21 @@ write_csv2(word_count_national, "data/textual/ntl_twitter_sentiments.csv")
 
 #test code
 
+word_count <- read_csv2("data/textual/twitter_sentiments.csv")
+
+library(usmap)
+
+word_count <- inner_join(word_count, tibble(state = state.name,
+                              abv = state.abb)) %>%
+  filter(sentiments == "positive",
+         week == 6)
+
+word_count %>%
+  filter(state == "Texas")
+
+plot_usmap(data = word_count, values = "percentage") +
+  scale_fill_continuous(low = "white", high = "red", name = "Positive Sentiment", label = scales::comma)
+
 word_count %>%
   filter(state == "California") %>%
   ggplot(aes(x = week, y = count / sum)) +
