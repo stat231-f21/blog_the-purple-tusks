@@ -294,18 +294,47 @@ word_count_national <- senator_covid_words %>%
   mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
   pivot_longer(-c(week,total_tweets),names_to = "sentiments", values_to = "count")
 
+word_count <- inner_join(word_count, tibble(state = state.name,
+                              abv = state.abb))
+
 write_csv2(word_count, "data/textual/twitter_sentiments.csv")
 
 write_csv2(word_count_national, "data/textual/ntl_twitter_sentiments.csv")
 
 #test code
+ymd(20090904)
 
-word_count <- read_csv2("data/textual/twitter_sentiments.csv")
+data <- senator_tweets %>% 
+      filter(grepl("COVID",text)) %>%
+      filter(created_at >= as.Date(ymd(20090904)) & created_at <= as.Date(ymd(20110904))) %>%
+      unnest_tokens(input = text, output = tokens) %>% 
+      #get rid of stop words
+      anti_join(stop_words, by = c("tokens" = "word")) %>%
+      count(tokens) %>%
+      #join with sentiments
+      inner_join(get_sentiments(lexicon = "afinn"), by = c("tokens" = "word")) %>%
+      arrange(desc(n))
+data
+
+senator_tweets %>% 
+      filter(created_at >= as.Date(ymd(20090904)) & created_at <= as.Date(ymd(20110904)))
+%>%
+      unnest_tokens(input = text, output = tokens) %>% 
+      #get rid of stop words
+      anti_join(stop_words, by = c("tokens" = "word")) %>%
+      count(tokens) %>%
+      #join with sentiments
+      inner_join(get_sentiments(lexicon = "afinn"), by = c("tokens" = "word"))  %>%
+      arrange(desc(n))
+
+wordcloud(words = data$tokens,freq = data$n, max.words = 30)
 
 library(usmap)
 
+word_count <- read_csv2("data/textual/twitter_sentiments.csv")
+
 word_count <- inner_join(word_count, tibble(state = state.name,
-                              abv = state.abb)) %>%
+                              abv = state.abb))
   filter(sentiments == "positive",
          week == 6)
 
@@ -324,6 +353,7 @@ word_count_national %>%
   filter(!week == 0) %>% 
   ggplot(aes(x = week, y = count / sum)) +
   geom_col(aes(fill = sentiments))
+
 
 ```
 

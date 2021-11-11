@@ -3,9 +3,9 @@ library(dplyr)
 library(tidyr)
 
 # import data
-MergedStatescovid <- read_csv("MergedStatescovid.csv")
-MergedStatesmental <- read_csv("MergedStatesMental.csv")
-twitter_sentiments <- read_csv("twitter_sentiments.csv")
+MergedStatescovid <- read_csv("Archive/MergedStatescovid.csv")
+MergedStatesmental <- read_csv("Archive/MergedStatesMental.csv")
+twitter_sentiments <- read_csv2("twitter_sentiments.csv")
 
 # For TAB 2 Map widgets:
 ## for select input choices
