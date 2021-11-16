@@ -1,0 +1,22 @@
+---
+title: "covidadditionalwrangling"
+author: "dm"
+date: "11/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(csv)
+library(dplyr)
+
+covid_19_spatial <- read_csv("covid_19_spatial.csv")
+covid_19_spatial <- covid_19_spatial %>%
+  rename("state" = region)
+
+write_csv(covid_19_spatial,"covid_19_spatial.csv")
+
+```
