@@ -50,7 +50,7 @@ ui <- navbarPage(
         textInput(inputId = "text", label = h3("Keyword"), value = "US"),
         sliderInput(inputId ="date",
                     label = "Choose a week timeframe",
-                    min = ymd(20090304),
+                    min = ymd(20190304),
                     max = ymd(20211104),
                     animate = TRUE,
                     value = c(ymd(20200304),ymd(20210305)),
@@ -82,7 +82,7 @@ server <- function(input, output){
       #get rid of stop words
       anti_join(stop_words, by = c("tokens" = "word")) %>%
       count(tokens) %>%
-      filter(!grepl(paste("https|t.co|amp|rt|",input$text,sep = ""), tokens)) %>%
+      filter(!grepl(paste("https|t.co|amp|rt|",input$text,sep = "", ignore.case = TRUE), tokens)) %>%
       #join with sentiments
       #inner_join(get_sentiments(lexicon = "afinn"), by = c("tokens" = "word")) %>%
       arrange(desc(n))
