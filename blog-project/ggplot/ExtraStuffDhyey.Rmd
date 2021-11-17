@@ -1,0 +1,173 @@
+---
+title: "Untitled"
+author: "dm"
+date: "11/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+
+```
+
+```{r}
+timeline_graph_p <- read_csv("timeline_graph2.csv") %>%
+  filter(response == "positive",state == "National")
+ggplot(data = timeline_graph_p,
+           mapping = aes(x = week,
+                         y = percentage, 
+                         color = response)) +
+      geom_line(aes(x = week,
+                    y = percentage,
+                    color = response)) +
+      geom_point(aes(x = week,
+                     y = percentage,
+                     color = response)) +
+      #geom_hline(yintercept = 19.933939, linetype = "dashed") +
+  geom_smooth(method = "lm", se = TRUE) +
+  
+      theme(plot.title = element_text(size=15), 
+            plot.subtitle = element_text(size=10),
+            axis.text = element_text(size=10),
+            axis.title = element_text(size=10),
+            legend.text = element_text(size=10),
+            legend.title = element_text(size=10),
+            legend.key.size = unit(1, 'cm')) +
+            #scale_y_continuous(trans='log10') +
+
+      scale_colour_manual(values = c("positive" = "slateblue1")) +
+      labs(title = "The Positive Sentiment among Senators Nationally",
+           subtitle = "During the Covid-19 Period",
+           y = "Percentage of Positive Sentiment in Senators' Tweets",
+           x = "Week")
+
+cor(y = timeline_graph_p$percentage,x = timeline_graph_p$week)
+
+#####################
+
+timeline_graph_n <- read_csv("timeline_graph2.csv") %>%
+  filter(response == "negative",state == "National")
+ggplot(data = timeline_graph_n,
+           mapping = aes(x = week,
+                         y = percentage, 
+                         color = response)) +
+      geom_line(aes(x = week,
+                    y = percentage,
+                    color = response)) +
+      geom_point(aes(x = week,
+                     y = percentage,
+                     color = response)) +
+      #geom_hline(yintercept = 19.933939, linetype = "dashed") +
+  geom_smooth(method = "lm", se = TRUE) +
+  
+      theme(plot.title = element_text(size=15), 
+            plot.subtitle = element_text(size=10),
+            axis.text = element_text(size=10),
+            axis.title = element_text(size=10),
+            legend.text = element_text(size=10),
+            legend.title = element_text(size=10),
+            legend.key.size = unit(1, 'cm')) +
+            #scale_y_continuous(trans='log10') +
+
+      scale_colour_manual(values = c("negative" = "red")) +
+      labs(title = "The Negative Sentiment among the Senators Nationally",
+           subtitle = "During the Covid-19 Period",
+           y = "Percentage of Negative Sentiment in Senators' Tweets",
+           x = "Week")
+
+cor(y = timeline_graph_n$percentage,x = timeline_graph_n$week)
+##################
+timeline_graph_ang <- read_csv("timeline_graph2.csv") %>%
+  filter(response == "anger",state == "National")
+ggplot(data = timeline_graph_ang,
+           mapping = aes(x = week,
+                         y = percentage, 
+                         color = response)) +
+      geom_line(aes(x = week,
+                    y = percentage,
+                    color = response)) +
+      geom_point(aes(x = week,
+                     y = percentage,
+                     color = response)) +
+      #geom_hline(yintercept = 19.933939, linetype = "dashed") +
+  geom_smooth(method = "lm", se = TRUE) +
+  
+      theme(plot.title = element_text(size=15), 
+            plot.subtitle = element_text(size=10),
+            axis.text = element_text(size=10),
+            axis.title = element_text(size=10),
+            legend.text = element_text(size=10),
+            legend.title = element_text(size=10),
+            legend.key.size = unit(1, 'cm')) +
+            #scale_y_continuous(trans='log10') +
+
+      scale_colour_manual(values = c("anger" = "black")) +
+      labs(title = "The Anger Sentiment among the Senators Nationally",
+           subtitle = "During the Covid-19 Period",
+           y = "Percentage of Anger Sentiment in Senators' Tweets",
+           x = "Week")
+
+cor(y = timeline_graph_ang$percentage,x = timeline_graph_ang$week)
+
+#####################
+
+timeline_graph_f <- read_csv("timeline_graph2.csv") %>%
+  filter(response == "fear",state == "National")
+ggplot(data = timeline_graph_f,
+           mapping = aes(x = week,
+                         y = percentage, 
+                         color = response)) +
+      geom_line(aes(x = week,
+                    y = percentage,
+                    color = response)) +
+      geom_point(aes(x = week,
+                     y = percentage,
+                     color = response)) +
+      #geom_hline(yintercept = 19.933939, linetype = "dashed") +
+  geom_smooth(method = "lm", se = TRUE) +
+  
+      theme(plot.title = element_text(size=15), 
+            plot.subtitle = element_text(size=10),
+            axis.text = element_text(size=10),
+            axis.title = element_text(size=10),
+            legend.text = element_text(size=10),
+            legend.title = element_text(size=10),
+            legend.key.size = unit(1, 'cm')) +
+            #scale_y_continuous(trans='log10') +
+
+      scale_colour_manual(values = c("fear" = "magenta")) +
+      labs(title = "The Fear Sentiment among the Senators Nationally",
+           subtitle = "During the Covid-19 Period",
+           y = "Percentage of Fear Sentiment in Senators' Tweets",
+           x = "Week")
+
+cor(y = timeline_graph_f$percentage,x = timeline_graph_f$week)
+```
+
+```{r}
+library(usmap)
+covid_19_spatial <- read_csv("data/covid/covid_19_spatial.csv")
+covdata1 <- covid_19_spatial %>%
+            filter(week %in% 29:34)%>%
+            select(c("state", 
+                     "percentage_cases_spatial",
+                     "percentage_deaths_spatial")) %>%
+            group_by(state) %>%
+            summarize(percentage_cases_spatial =
+                        mean(percentage_cases_spatial),
+                      percentage_deaths_spatial =
+                        mean(percentage_deaths_spatial))
+
+plot_usmap(data = covdata1, values = "percentage_cases_spatial") +
+            viridis::scale_fill_viridis(name = "Percentages of Cases", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=15), 
+                  plot.subtitle = element_text(size=10),
+                  legend.text = element_text(size=10),
+                  legend.title = element_text(size=10),
+                  legend.key.size = unit(1, 'cm')) +
+            labs(title = "Week 29-34: Geographic Distribution of Percentages of Cases of COVID-19",
+                 subtitle = "Statewise distribution over US (percentage of count in a state compared to the national count)")
+```
