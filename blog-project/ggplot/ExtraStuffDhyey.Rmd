@@ -148,26 +148,51 @@ cor(y = timeline_graph_f$percentage,x = timeline_graph_f$week)
 
 ```{r}
 library(usmap)
-covid_19_spatial <- read_csv("data/covid/covid_19_spatial.csv")
-covdata1 <- covid_19_spatial %>%
-            filter(week %in% 29:34)%>%
+covid_19_spatial <- read_csv("covid_19_spatial.csv")
+covdata <- covid_19_spatial %>%
+            filter(week %in% c(3:12,14:17,35:39))%>%
             select(c("state", 
-                     "percentage_cases_spatial",
-                     "percentage_deaths_spatial")) %>%
+                     "percentage_cases_bar",
+                     "percentage_deaths_bar")) %>%
             group_by(state) %>%
-            summarize(percentage_cases_spatial =
-                        mean(percentage_cases_spatial),
-                      percentage_deaths_spatial =
-                        mean(percentage_deaths_spatial))
+            summarize(percentage_cases_bar =
+                        mean(percentage_cases_bar),
+                      percentage_deaths_bar =
+                        mean(percentage_deaths_bar)) 
 
-plot_usmap(data = covdata1, values = "percentage_cases_spatial") +
+plot_usmap(data = covdata, values = "percentage_cases_bar") +
             viridis::scale_fill_viridis(name = "Percentages of Cases", option = "magma", direction = -1) +
             theme_void() +
             theme(plot.title = element_text(size=15), 
-                  plot.subtitle = element_text(size=10),
+                  plot.subtitle = element_text(size=9),
                   legend.text = element_text(size=10),
                   legend.title = element_text(size=10),
                   legend.key.size = unit(1, 'cm')) +
-            labs(title = "Week 29-34: Geographic Distribution of Percentages of Cases of COVID-19",
-                 subtitle = "Statewise distribution over US (percentage of count in a state compared to the national count)")
+            labs(title = "Week Control: Geographic Distribution of Percentages of Cases of COVID-19",
+                 subtitle = "Distribution of percentage of count of a state in given week range compared to the count of that state over all the weeks")
+```
+
+```{r}
+library(usmap)
+library(dplyr)
+library(tidyverse)
+mental_health_spatial <- read_csv("mental_health_spatial.csv")
+mendata <- mental_health_spatial %>%
+            filter(week %in% 29:34)%>%
+            select(c("state", "anxiety_percentage", "depression_percentage")) %>%
+            group_by(state) %>%
+            summarize(
+              anxiety_percentage = mean(anxiety_percentage),
+              depression_percentage = mean(depression_percentage))
+
+plot_usmap(data = mendata, values = "anxiety_percentage") +
+            viridis::scale_fill_viridis(name = "Percentages of Anxiety", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=12), 
+                  plot.subtitle = element_text(size=9),
+                  legend.text = element_text(size=10),
+                  legend.title = element_text(size=10),
+                  legend.key.size = unit(1, 'cm')) +
+            labs(title = " Week 29-34: Geographic Distribution of Percentages of people with Anxiety during COVID-19",
+                 subtitle = " Distribution of percentage of count of a state in given week range compared to the count of that state over all the weeks")
 ```

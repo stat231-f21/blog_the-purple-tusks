@@ -13,30 +13,30 @@ library(tidyr)
 library(usmap)
 
 ### Options ###
-covid_19_spatial <- read_csv("data/covid/covid_19_spatial.csv")
+covid_19_spatial <- read_csv("covid_19_spatial.csv")
 covid_choice_values <- c("percentage_cases_spatial", "percentage_deaths_spatial")
 covid_choice_names <- c("Cases Percentage S", "Death Percentage S")
 names(covid_choice_values) <- covid_choice_names
 
-covid_19_spatial <- read_csv("data/covid/covid_19_spatial.csv")
+covid_19_spatial <- read_csv("covid_19_spatial.csv")
 covid_choice_values2 <- c("percentage_cases_bar", "percentage_deaths_bar")
 covid_choice_names2 <- c("Cases Percentage B", "Death Percentage B")
 names(covid_choice_values2) <- covid_choice_names2
 
-mental_health_spatial <- read_csv("data/mental-health/mental_health_spatial.csv")
+mental_health_spatial <- read_csv("mental_health_spatial.csv")
 mental_choice_values <- c("anxiety_percentage", "depression_percentage")
 mental_choice_names <- c("Anxiety Percentage", "Depression Percentage")
 names(mental_choice_values) <- mental_choice_names
 
-table_for_mental2 <- read_csv("data/timeline_table2.csv")
+table_for_mental2 <- read_csv("timeline_table2.csv")
 mental_choice_values2 <- c("Anxiety", "Depression")
 mental_choice_names2 <- c("Anxiety Percentage B", "Depression Percentage B")
 names(mental_choice_values2) <- mental_choice_names2
 
-us_sentiments <- read_csv2("data/textual/twitter_sentiments.csv")
+us_sentiments <- read_csv2("twitter_sentiments.csv")
 sentiment_choices <- unique(us_sentiments$sentiments)
 
-table_for_sent2 <- read_csv("data/timeline_table2.csv")
+table_for_sent2 <- read_csv("timeline_table2.csv")
 sent_choice_values2 <- c("anger", "anticipation", "disgust", "fear", "joy",
                          "negative", "positive", "sadness", "surprise", "trust")
 sent_choice_names2 <- c("Anger B", "Anticipation B", "Disgust B", "Fear B",
