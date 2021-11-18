@@ -8,6 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
 ```
+# COVID-19 data wrangling and diff graph wrangling and plotting.
+
 
 ```{r, eval = FALSE, show_col_types = FALSE}
 library(dplyr)
