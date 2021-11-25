@@ -13,6 +13,7 @@ library(ggplot2)
 ```
 
 ```{r, fig.cap = "Fig. # - Control"}
+# Cases
 library(usmap)
 covid_19_spatial <- read_csv("covid_19_spatial.csv")
 covdata <- covid_19_spatial %>%
@@ -39,6 +40,33 @@ plot_usmap(data = covdata, values = "percentage_cases_bar") +
             labs(title = "The Distribution of Percentages of New COVID-19 Cases",
                  subtitle = "During COVID-19 (Weeks 3-12, 14-17, 35-39)",
                  caption = paste("Percentage = average of number of new cases for the state during this time period over number of new cases during weeks 1-39", " ", sep="\n"))
+
+
+# anxiety
+
+mendata <- mental_health_spatial %>%
+            filter(week %in% c(3:12,14:17,35:39))%>%
+            select(c("state", "anxiety_percentage", "depression_percentage")) %>%
+            group_by(state) %>%
+            summarize(
+              anxiety_percentage = mean(anxiety_percentage),
+              depression_percentage = mean(depression_percentage))
+
+plot_usmap(data = mendata, values = "anxiety_percentage") +
+            viridis::scale_fill_viridis(name = "Percentages of Anxiety", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=12), 
+                  plot.subtitle = element_text(size=9),
+                  legend.text = element_text(size=10),
+                  legend.title = element_text(size=10),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(hjust = 0)) +
+            labs(title = "The Distribution of Percentages of People Associated with Anxiety",
+                 subtitle = "During COVID-19 (Weeks 3-12, 14-17, 35-39)", 
+                 caption = paste("Percentage = average of number of people with anxiety over number of people who took the survey during this time period", " ", sep="\n"))
+
+
 ```
 
 ```{r}

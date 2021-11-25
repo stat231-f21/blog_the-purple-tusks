@@ -1,7 +1,7 @@
 ---
-title: "Your Project Title Here"
-author: "Your Names Here"
-date: "Add a date"
+title: "Mental Health and the COVID-19 in US"
+author: "Dhyey Mavani, Kayla Ko and Ziji Zhou"
+date: "25/11/2021"
 output:
   rmdformats::readthedown:
     thumbnails: false
@@ -21,6 +21,12 @@ knitr::opts_chunk$set(echo = FALSE,
 # Set R environment options
 options(knitr.kable.NA = '')
 ```
+
+# Motivation
+
+As COVID uprooted every aspect of our lives and put us into isolation, the importance of mental health has been recognized more and more. The initial wave of COVID was filled with fear, confusion, loneliness and many other unexpected emotions. Debates over government response became more and more partisan as the pandemic started becoming the new normal. 
+
+Considering the turbulent political and social discourse that occurred during the pandemic, we wanted to examine the correlations between mental health, COVID, and government response and policy. Did the government reflect our mental sufferings? Did our mood improve as the trend of COVID changed? What about in parallel with the public statements of state senators? These factors are fluid in its relationship with each other and in this blog we will dive deeper into this interplay of factors during this global pandemic.
 
 # Header 1 (Section heading)
 
