@@ -1,0 +1,138 @@
+---
+title: "Wordcloud outputs"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(shiny)
+library(tidyverse)
+library(formatR)
+library(csv)
+library(utils)
+library(wordcloud)
+library(ggwordcloud)
+library(RColorBrewer)
+
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("~/Documents/Amherst/STAT 231 DATA SCIENCE/blog_the-purple-tusks/blog-project")
+
+word_cloud <- read_csv2("data/textual/senator_wordcloud.csv")
+sentiments <- read_csv2("data/textual/twitter_sentiments.csv")
+tweets <- read_csv2("data/textual/senator_tweets_covid.csv")
+```
+
+Considering the outliers we can look at the general response from US senators. 
+
+```{r wc-1}
+temp <- tweets %>% 
+  unnest_tokens(input = text, output = tokens)
+
+#Z2 Week 2 
+set.seed(50)
+word_cloud
+temp_wc <- temp %>%
+  filter(week == 2) %>% 
+  anti_join(stop_words, by = c("tokens" = "word")) %>%
+  count(tokens) %>%
+  filter(!grepl(paste("https|t.co|amp|rt|",sep = "", ignore.case = TRUE), tokens)) %>%
+  arrange(desc(n))
+pal <- brewer.pal(9, "Set1")
+pal <- pal[-(1:2)]
+wordcloud(words = temp_wc$tokens, 
+          freq = temp_wc$n,
+          rot.per = .15,
+          colors = pal,
+          random.order = T,
+          max.words = 150)
+
+temp_wc[1:9,] %>%
+  ggplot(aes(x = reorder(tokens,n), y = n)) +
+  geom_col(aes(fill = tokens)) +
+  scale_fill_brewer(type = "", palette = "Set1") +
+  coord_flip() +
+  labs(title = "Most Commonly Used Words By US Senators in Tweets Regarding COVID",
+       subtitle = "Week 2",
+       y = "Count",
+       x = "Word")
+#end
+#Z3 Week 3
+set.seed(50)
+temp_wc <- temp %>%
+  filter(week == 3) %>% 
+  anti_join(stop_words, by = c("tokens" = "word")) %>%
+  count(tokens) %>%
+  filter(!grepl(paste("https|t.co|amp|rt|",sep = "", ignore.case = TRUE), tokens)) %>%
+  arrange(desc(n))
+pal <- brewer.pal(9, "Set1")
+pal <- pal[-(1:2)]
+wordcloud(words = temp_wc$tokens, 
+          freq = temp_wc$n,
+          rot.per = .15,
+          colors = pal,
+          random.order = T,
+          max.words = 150)
+
+temp_wc[1:9,] %>%
+  ggplot(aes(x = reorder(tokens,n), y = n)) +
+  geom_col(aes(fill = tokens)) +
+  scale_fill_brewer(type = "", palette = "Set1") +
+  coord_flip() +
+  labs(title = "Most Commonly Used Words By US Senators in Tweets Regarding COVID",
+       subtitle = "Week 3",
+       y = "Count",
+       x = "Word")
+#end
+#Z4 Week 18
+set.seed(50)
+temp_wc <- word_cloud %>%
+  filter(week == 18) %>% 
+  group_by(tokens, week, value) %>%
+  summarise(n = sum(n)) %>%
+  arrange(desc(n))
+pal <- brewer.pal(9, "Set1")
+pal <- pal[-(1:2)]
+wordcloud(words = temp_wc$tokens, 
+          freq = temp_wc$n,
+          rot.per = .15,
+          colors = pal,
+          random.order = T,
+          max.words = 150)
+
+temp_wc[1:9,] %>%
+  ggplot(aes(x = reorder(tokens,n), y = n)) +
+  geom_col(aes(fill = tokens)) +
+  scale_fill_brewer(type = "", palette = "Set1") +
+  coord_flip() +
+  labs(title = "Most Commonly Used Words By US Senators in Tweets Regarding COVID",
+       subtitle = "Week 18",
+       y = "Count",
+       x = "Word")
+#end
+
+#Z1 
+temp_s2 <- sentiments %>%
+  filter(!week == 0,
+         sentiments == c("anger","fear","joy","positive","negative","sadness","trust")) %>%
+  group_by(week, sentiments) %>%
+  summarise(count = sum(count), prc = mean(percentage_of_total_sentiment))
+ggplot(temp_s2, aes(x = week, y = prc)) +
+  geom_line(aes(color = sentiments)) +
+  scale_color_brewer(palette = "Paired") +
+  labs(title = "Proportion of Sentiments by Week",
+       color = "Sentiments",
+       x = "Week",
+       y = "Percentage*",
+       caption = "*percentage is the number of words that week of each sentiment divided over total words of that sentiment")
+ggsave("z1.png")
+#end
+
+
+temp_wc
+sentiments
+temp_s2
+```
+
+

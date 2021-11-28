@@ -317,8 +317,7 @@ data <- senator_tweets %>%
 data
 
 senator_tweets %>% 
-      filter(created_at >= as.Date(ymd(20090904)) & created_at <= as.Date(ymd(20110904)))
-%>%
+      filter(created_at >= as.Date(ymd(20090904)) & created_at <= as.Date(ymd(20110904))) %>%
       unnest_tokens(input = text, output = tokens) %>% 
       #get rid of stop words
       anti_join(stop_words, by = c("tokens" = "word")) %>%
@@ -371,7 +370,7 @@ for(i in 1:39){
   for(j in 1:50){
     temp2 <- temp %>%
       filter(week == i, state == state.name[j]) %>%
-      count(wt = favorite_count, tokens) %>%
+      count(tokens) %>%
       #join with sentiments
       inner_join(get_sentiments(lexicon = "afinn"), by = c("tokens" = "word")) %>%
       arrange(desc(n)) %>%
@@ -390,7 +389,7 @@ senator_wordcloud_total <- senator_tweets_covid %>%
   #get rid of stop words
   anti_join(stop_words, by = c("tokens" = "word")) %>%
   filter(week == 5) %>%
-  count(wt = favorite_count, tokens) %>%
+  count(tokens) %>%
   #join with sentiments
   inner_join(get_sentiments(lexicon = "afinn"), by = c("tokens" = "word")) %>%
   arrange(desc(n))
