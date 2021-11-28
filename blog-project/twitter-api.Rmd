@@ -357,6 +357,8 @@ word_count_national %>%
 ```
 
 ```{r wordcloud}
+senator_tweets_covid <- read_csv2("data/textual/senator_tweets_covid.csv")
+
 #word cloud dataset with afinn
 temp <- senator_tweets_covid %>%
   unnest_tokens(input = text, output = tokens) %>% 
@@ -380,6 +382,8 @@ for(i in 1:39){
       rbind(temp2)
   }
 }
+
+senator_wordcloud
 
 write_csv2(senator_wordcloud, "data/textual/senator_wordcloud.csv")
 
