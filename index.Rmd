@@ -1,7 +1,7 @@
 ---
-title: "Mental Health and the COVID-19 in US"
-author: "Dhyey Mavani, Kayla Ko and Ziji Zhou"
-date: "25/11/2021"
+title: "Come Up With Title"
+author: "The Purple Tusks"
+date: "November 2021"
 output:
   rmdformats::readthedown:
     thumbnails: false
@@ -10,7 +10,14 @@ output:
 
 ```{r setup, include = FALSE}
 library(tidyverse)
-library(kableExtra) # for example code; delete if not needed
+library(csv)
+library(ggplot2)
+require(mosaic)
+library(mdsr)
+library(RColorBrewer)
+library(dplyr)
+library(tidyr)
+library(usmap)
 
 # Set code chunk defaults 
 knitr::opts_chunk$set(echo = FALSE, 
@@ -22,122 +29,336 @@ knitr::opts_chunk$set(echo = FALSE,
 options(knitr.kable.NA = '')
 ```
 
-# Motivation
+# Motivations
 
 As COVID uprooted every aspect of our lives and put us into isolation, the importance of mental health has been recognized more and more. The initial wave of COVID was filled with fear, confusion, loneliness and many other unexpected emotions. Debates over government response became more and more partisan as the pandemic started becoming the new normal. 
 
 Considering the turbulent political and social discourse that occurred during the pandemic, we wanted to examine the correlations between mental health, COVID, and government response and policy. Did the government reflect our mental sufferings? Did our mood improve as the trend of COVID changed? What about in parallel with the public statements of state senators? These factors are fluid in its relationship with each other and in this blog we will dive deeper into this interplay of factors during this global pandemic.
 
-# Header 1 (Section heading)
+![The artwork is from  [Alcimed](https://www.alcimed.com/en/alcim-articles/impact-of-covid-19-on-mental-health-what-are-the-long-term-consequences/)](img/covid-mental.jpg){width=70%}
 
-## Header 2 (Subsection heading)
+# How We Got Our Data
 
-### Header 3 (Subsubsection heading)
+## Mental Health Data
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For example, you can include **Bold** and _Italic_ and `Code` text.  For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+We used the raw data from the [Household Pulse Survey - Public Use Files](https://www.census.gov/programs-surveys/household-pulse-survey/datasets.html) from CDC separated by weeks from 1 to 39 in different csv files. This data was a report of the scores of people in two kinds of survey questions by U.S. Census Bureau:
 
-You should test out updating your GitHub Pages website:
+*Adapted PHQ-2 questions (screener for depressive disorder):*
 
-* clone your group's blog project repo in RStudio
-* update "Your Project Title Here" to a new title in the YAML header
-* knit `index.Rmd` (we will now knit to HTML by default instead of pdf)
-* commit and push **both** `index.Rmd` and `index.html`
-* go to https://stat231-f21.github.io/blog_the-purple-tusks/ to see the published test document (this is publicly available!).
+* Over the last 7 days, how often have you been bothered by … having little interest or pleasure in doing things? Would you say not at all, several days, more than half the days, or nearly every day? *Select only one answer.*
+* Over the last 7 days, how often have you been bothered by … feeling down, depressed, or hopeless? Would you say not at all, several days, more than half the days, or nearly every day? *Select only one answer.*
 
-## Including code and plots
+*Adapted GAD-2 questions (screener for generalized anxiety disorder):*
 
-You can embed code as normal, for example:
+* Over the last 7 days, how often have you been bothered by the following problems … Feeling nervous, anxious, or on edge? Would you say not at all, several days, more than half the days, or nearly every day? *Select only one answer.*
+* Over the last 7 days, how often have you been bothered by the following problems … Not being able to stop or control worrying? Would you say not at all, several days, more than half the days, or nearly every day? *Select only one answer.*
 
-```{r cars}
-summary(cars)
+There were four measured parameters: Anxious, Worry, Down and Interest. As per CDC, a person can be considered suffering from anxiety syndrome if the sum of the Anxious and Worry scores is greater than or equal to 4. Similarly, a person can be considered suffering from depression syndrome if the sum of the Down and Interest scores is greater than or equal to 4.
+
+We wrangled the data to calculate the percentage of people suffering from anxiety and depression syndrome by state and week for this project.
+
+Dates were classified as weeks as follows:
+
+<span style="text-decoration:underline">**Week number | start date [year-month-day] - end date [year-month-day]**</span>
+
+1. 2020-04-23 - 2020-05-05
+2. 2020-05-07 - 2020-05-12
+3. 2020-05-14 - 2020-05-19
+4. 2020-05-21 - 2020-05-26
+5. 2020-05-28 - 2020-06-02
+6. 2020-06-04 - 2020-06-09
+7. 2020-06-11 - 2020-06-16
+8. 2020-06-18 - 2020-06-23
+9. 2020-06-25 - 2020-06-30 
+10. 2020-07-02 - 2020-07-07
+11. 2020-07-09 - 2020-07-14
+12. 2020-07-16 - 2020-07-21
+13. 2020-08-19 - 2020-08-31
+14. 2020-09-02 - 2020-09-14
+15. 2020-09-16 - 2020-09-28
+16. 2020-09-30 - 2020-10-12
+17. 2020-10-14 - 2020-10-26
+18. 2020-10-28 - 2020-11-09
+19. 2020-11-11 - 2020-11-23
+20. 2020-11-25 - 2020-12-07
+21. 2020-12-09 - 2020-12-21 
+22. 2021-01-06 - 2021-01-18
+23. 2021-01-20 - 2021-02-01 
+24. 2021-02-03 - 2021-02-15
+25. 2021-02-17 - 2021-03-01
+26. 2021-03-03 - 2021-03-15
+27. 2021-03-17 - 2021-03-29
+28. 2021-04-14 - 2021-04-26
+29. 2021-04-28 - 2021-05-10
+30. 2021-05-12 - 2021-05-24 
+31. 2021-05-26 - 2021-06-07
+32. 2021-06-09 - 2021-06-21
+33. 2021-06-23 - 2021-07-05 
+34. 2021-07-21 - 2021-08-02
+35. 2021-08-04 - 2021-08-16
+36. 2021-08-18 - 2021-08-30
+37. 2021-09-01 - 2021-09-13
+38. 2021-09-15 - 2021-09-27
+39. 2021-09-29 - 2021-10-11
+
+## Covid Cases and Deaths Data
+
+The dataset which we used is published by the New York Times. The dataset is in itself free to use for any non-commercial purposes. The cases represent the total number of new active positive cases at that point in time and at the given place, which takes into account the people who recovered from COVID-19. The deaths represent the total number of deaths at that point in time and at the given place. 
+
+We wrangled the dataset to arrange it in a weekly fashion consistent with the mental health dataset. We then calculated the percentage of COVID-19 cases and deaths by states and by weeks.
+
+## Twitter Data
+
+![Twitter for Developers](img/twitter-api.jpg){width=60%}
+
+Twitter is one of the biggest social media platforms in the world, with [396 million monthly users](https://datareportal.com/reports/digital-2021-april-global-statshot). In addition to the huge user base, Twitter is a primarily text based social media platform, allowing for easier analysis of qualitative data compared to photo sharing platforms. During the terms of the past two presidents, the platform was also popularized as a political platform for politicians to directly communicate to their constituents. With over 300 thousand tweets from US senators pulled from Twitter’s official API, there is a huge quantity of data to analyze and to even out the short-comings of sentiment and textual analysis. 
+
+*The Data:*
+
+We used Twitter’s user_timeline API in which we pulled the 3000 most recent tweets from a specific account. We then ran through each senator of the past two Congresses and removed the duplicates, in total creating a database of 338,015 tweets. 
+
+After wrangling, each entry had 11 variables:
+
+1. State Abbrevation
+2. State Name
+3. Name of Senator
+4. Tweet Content
+5. Source
+6. Favorite Count
+7. Retweet Count
+8. Hashtags
+9. Location
+10. Date of Tweet
+11. Screen Name
+
+*Sentiment Analysis:*
+
+In order to conduct sentiment analysis we filtered through the tweets to include only tweets containing keywords regarding COVID, tokenizing the tweets into single words, and then applying the nrc sentiment database to each word.
+
+# Mental Health
+
+## What is Mental Health?
+
+Mental health plays a vital role in all of our lives. According to [CDC](https://www.cdc.gov/mentalhealth/learn/index.htm), “mental health includes our emotional, psychological, and social well-being. It affects how we think, feel, and act.” It can either increase your quality of life or ruin it. Something this important and serious is oftentimes overlooked by society. According to the [American Psychiatric Association](https://www.psychiatry.org/patients-families/stigma-and-discrimination), the majority of people suffering from mental illness do not receive help for their disorders for various reasons such as concern about being treated differently or fear of losing their jobs and livelihood. This is due to stigma and prejudice against people with mental illness. Because mental health affects everyone, we thought it would be meaningful to explore mental health in the context of the Covid-19 pandemic by analyzing health policies and public sentiments.
+
+## Mental Health Pre-Covid
+
+To look at an aspect of mental health before the Covid-19 pandemic, we looked into the distribution of adults who experienced symptoms of generalized anxiety disorder, which is characterized by excessive worry that is difficult to control accompanied by physical symptoms like fatigue, restlessness, irritability, or sleep disturbance. 
+
+```{r precovid-graph, echo=FALSE, fig.height = 4, fig.width = 6, fig.align = 'center'}
+# create dataset from CDC
+precovid_anxiety <- data.frame(Symptoms = c("No", "Yes"),
+                                Percentage = c(84.4, 15.6))
+
+# create bar chart
+precovid_barchart <- ggplot(precovid_anxiety,
+                            aes(x = Symptoms, y = Percentage, fill = Symptoms)) + 
+  geom_col() + 
+  geom_text(aes(label = Percentage), vjust=0) +
+  scale_fill_brewer(palette = "Set1") +
+  labs(title = "The Percentage of People Who Experienced Symptoms of Anxiety",
+       subtitle = "In 2019 (Pre-Covid)",
+       x = "Experienced Symptoms",
+       y = "Percentage")
+
+precovid_barchart
 ```
 
-Let's clean up the format of that output instead of using the standard R output:
+```{r duringcovid-graph, echo=FALSE, fig.height = 4, fig.width = 6, fig.align = 'center'}
+# create dataset with calculated mean percentage
+covid_anxiety <- data.frame(Symptoms = c("No", "Yes"),
+                            Percentage = c(82, 18))
 
-```{r pretty-table, echo = TRUE}
-summary(cars) %>%
-  kable(col.names = c("Speed", "Distance"),
-        row.names = FALSE) %>%
-  kable_styling(bootstrap_options = "striped",
-                full_width = FALSE) %>%
-  row_spec(0, bold = TRUE) %>%
-  column_spec(1:2, width = "1.5in") 
+covid_barchart <- ggplot(covid_anxiety,
+                         aes(x = Symptoms, y = Percentage, fill = Symptoms)) +
+  geom_col() +
+  geom_text(aes(label = Percentage), vjust=0) +
+  scale_fill_brewer(palette = "Set1") +
+  labs(title = "The Percentage of People Who Experienced Symptoms of Anxiety",
+       subtitle = "During Covid-19",
+       x = "Experienced Symptoms",
+       y = "Percentage")
+covid_barchart
 ```
 
-In a study from the 1920s, fifty cars were used to see how the speed of the car and the distance taken to stop were related.  Speeds ranged between `r min(cars$speed)` and `r max(cars$speed)` mph.  Distances taken to stop ranged between `r min(cars$dist)` and `r max(cars$dist)` feet, with the middle 50% falling between `r as.numeric(quantile(cars$dist)[2])` and `r as.numeric(quantile(cars$dist)[4])` feet.  
+During 2019, about 15.8% of adults experienced symptoms of anxiety. This percentage is lower than the percent of adults who experienced symptoms of anxiety during the time period of Covid-19 (April 23, 2020 - October 11, 2021), which we found to be 18%. The increase in adults experiencing symptoms of anxiety highlights how detrimental Covid-19 was for people’s mental wellbeing. 
 
-You can also embed plots as normal, for example:
+## Mental Health During Covid-19
 
-```{r figure1}
-ggplot(data = cars, aes(x = speed, y = dist)) + 
-  geom_point() + 
-  labs(x = "Speed of car (mph)",
-       y = "Distance taken to stop (ft)",
-       title = "Stopping distance increases with faster speeds",
-       subtitle = "Based on 1920s study") +
-  theme_classic()
+The pandemic of Covid-19 brought upon many drastic changes not only to how we perceive health but to our daily lives. During the pandemic of Covid-19, people were subjected to social isolation and experienced various hardships, so we thought it would be beneficial to analyze the trend of mental health and see how it has been affected in different contexts. 
+
+```{r anxiety-graph, echo=FALSE, message=FALSE}
+# import data
+mental_health <- read_csv("blog-project/data/mental-health/mental_health.csv") %>%
+  filter(State == "National")
+
+# plot anxiety graph with ggplot
+anxiety_graph <- ggplot(data = mental_health,
+           mapping = aes(x = WEEK,
+                         y = anxiety_percentage)) +
+      geom_line(aes(x = WEEK,
+                    y = anxiety_percentage),
+                color = "red") +
+      geom_point(aes(x = WEEK,
+                     y = anxiety_percentage),
+                 color = "red") + 
+  geom_smooth(method='lm', formula = y~x) + 
+  geom_hline(yintercept = 32.6, linetype = "dashed") +
+  theme(plot.title = element_text(size=15), 
+            plot.subtitle = element_text(size=10),
+            axis.text = element_text(size=10),
+            axis.title = element_text(size=10),
+            legend.text = element_text(size=10),
+            legend.title = element_text(size=10),
+            legend.key.size = unit(1, 'cm'),
+            plot.caption.position = "plot",
+            plot.caption = element_text(hjust = 0)) +
+  labs(title = "The Percentage of People Who Experienced Symptoms of Anxiety",
+       subtitle = "During Covid (Weeks 1- 39)",
+       x = "Week",
+       y = "Percentage",
+       caption = "Percentage = number of people with anxiety over number of people who took the survey")
+
+df1 <- data.frame(x1 = 5, x2 = 2.3, y1 = 30, y2 = 32.5)
+df2 <- data.frame(x1 = 21.5, x2 = 18, y1 = 25.5, y2 = 23.7)
+
+anxiety_graph + 
+  annotate("text", x = 5.3, y = 29.2, label = "Week 2", colour = "darkblue") + 
+  geom_curve(
+    aes(x = x1, y = y1, xend = x2, yend = y2),
+    inherit.aes = FALSE,
+    data = df1,
+    arrow = arrow(length = unit(0.03, "npc"))) + 
+  annotate("text", x = 9.4, y = 10.3, label = "Week 3", colour = "darkblue") +
+  geom_segment(aes(x = 7.3, y = 10.2, xend = 3.5, yend = 10.2),
+               arrow = arrow(length = unit(0.3, "cm"))) + 
+  annotate("text", x = 24, y = 25.5, label = "Week 18", colour = "darkblue") + 
+  geom_curve(
+    aes(x = x1, y = y1, xend = x2, yend = y2),
+    inherit.aes = FALSE,
+    data = df2,
+    arrow = arrow(length = unit(0.03, "npc")))
 ```
 
-Take note of the default code chunk options in the `setup` code chunk, and adjust individual code chunk options as needed. for example, unlike the rest of the Rmd files we worked in this semester, the default code chunk option is `echo = FALSE`, so you will need to set `echo  = TRUE` for any code chunks you would like to display in the blog. 
+As you can see in this figure above, the general trend of the percentage of people who experienced symptoms of anxiety during the 39 week period of Covid is generally positive. The correlation coefficient - a statistical measure of the strength and direction of the relationship between two variables - is 0.44, which indicates a moderate, positive relationship between weeks and percentage. We noted a few outliers in the trend indicated by the blue text, so we plotted a residuals vs. fitted plot to further explore this relationship.
 
+```{r residuals-plot, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 6, fig.align = 'center'}
+gm1 <- lm(anxiety_percentage ~ WEEK, data = mental_health)
 
-## Including links and images/videos
-
-You can include [links](https://www.datadreaming.org/post/r-markdown-theme-gallery/) and there are a few ways to embed  images! Both options for embedding images below can be used interchangeably. They both work for png, pdf, jpg, and even gif formats, and both support filepaths that are either URLs (for videos, you can include links to any valid YouTube or Vimeo URLs; see [here](https://bookdown.org/yihui/rmarkdown/learnr-videos.html) for more details) or point to a location within your project directory. 
-
-### Option 1: Markdown approach
-
-![This is a figure caption. The artwork is called Safe Space by  [Kenesha Sneed](https://www.keneshasneed.com/#/safespace/)](img/Kenesha-Sneed_safe-space.jpeg)
-
-
-### Option 2: Code chunk approach
-
-```{r, fig.cap = "This is also figure caption"}
-knitr::include_graphics("https://media.giphy.com/media/H7ZrrA9V2pd3Tehdds/giphy.gif")
+mplot(gm1, which = 1)
 ```
 
-## Including equations
+A residuals vs. fitted plot is an easy way to detect unequal error variances, outliers, and non-linearity. As you can see in the residuals vs. fitted plot, weeks 2, 3, and 18 are either significantly higher or below the line at 0 while the rest of the points are randomly scattered above and below the line. This shows that mental health varied widely throughout the 39 weeks and was particularly unstable in the early weeks of Covid probably due to reasons like people adapting to the different and difficult lifestyle of social isolation and quarantining. The percentage of people suffering from symptoms of anxiety peaked at week 18, which corresponds to October 28, 2020 to November 9, 2020, relative to other weeks towards the end of 2020. Although we cannot deduce anything conclusively, this may be due to the fact that on November 4th the U.S. hit a milestone with 100,000 new Covid-19 cases reported in a single day. This unprecedented spike in cases led to a shortage of N95 masks at health care facilities. On November 5th, there were many published studies that indicated difficulties in nationwide Covid-19 immunity as the path to vaccinating the majority of the country for Covid-19, thus achieving sufficient herd immunity, will be a difficult task. This most likely gave rise to unease and a sense of hopelessness across the nation.
 
-Equations may be needed if you are explaining a new technique or perhaps providing some other relevant formulas in your exposition. There are two ways to include equations:
+![](img/anxiety-spatial.jpg){width=100%}
 
-* Inline: $b \sim N(0, \sigma^2_b)$
-* Display-style (displayed on its own line): $$\frac{\sigma^2_b}{\sigma^2_b + \sigma^2_e}$$
+Looking into the three weeks of outliers we wanted to see if it was a national trend where the states somewhat uniformly worsened (and improved for week 3) mentally or if a region in the country influenced the average with their own anomaly. The three graphs above show the state distribution of anxiety. The biggest difference lies in the Southeast region as it severely worsened from the initial weeks into week 18. Week 3 shows more of a national improvement with no clear outliers compared to the two other graphs that showed peak numbers. While there was also a big variance between the three weeks among the midwestern states, the population of those states are not big enough to skew the national trend. 
+To find out the reasons for these anomalies it is important to examine how the government heralded the public opinion. Below are the word clouds of Tweets from US senators for the weeks in question.
 
-For typesetting equations appropriately, take a look at the *Symbols in math mode* section of this  [cheat sheet](https://users.dickinson.edu/~richesod/latex/latexcheatsheet.pdf)  (or do some extra Googling---there are *many* resources).
+# Covid-19
 
+Given increasing trends of anxiety and depression, we questioned if this is due to COVID-19 getting worse. In order to visualize this trend we created a line graph plotting the number of new COVID cases per week in the graph below.
 
-# You can even create tabs within your webpage if you want! {.tabset .tabset-fade .tabset-pills}
+```{r covid-cases-graph, echo=FALSE, message=FALSE, fig.height = 4.5, fig.width = 6, fig.align = 'center'}
+timeline_graph <- read_csv("blog-project/shiny/timeline_graph.csv") %>%
+  filter(response == "Covid Cases", state == "National")
 
-Every subsection heading (starting with `##`) until you create a new section heading (starting with `#`) will be a new tab.
-
-## Bulleted list
-
-You can make a bulleted list like this:
-
-* item 1
-* item 2
-* item 3
-
-
-## Numbered list
-
-You can make a numbered list like this
-
-1. First thing I want to say
-2. Second thing I want to say
-3. Third thing I want to say
-
-# Customizing your blog design
-
-As a *final* detail **only** if you have time, you can explore options for customizing the style of your blog. By default, we are using the `readthedown` theme from the [**rmdformats** package](https://github.com/juba/rmdformats) (see Line 6 of this file if you want to switch out themes). There are, I'm sure, many many many more similar packages with built in themes, or you can look into how to include a CSS code chunk to customize aspects of the current theme.  
-
-There are some easy-to-change options that you can play around with:
-
-* The theme itself (Line 6): `rmdformats::readthedown`, `rmdformats::downcute`, `rmdformats::robobook`, `rmdformats::material`,
-  * For `downcute` only, you can add a new indented line below Line 6 with the code `downcute_theme: "chaos"` for the `downcute chaos` theme
-  * I would *not* recommend the other themes that do not have the sidebar navigation
+ggplot(data = timeline_graph,
+           mapping = aes(x = week,
+                         y = percentage)) +
+      geom_line(aes(x = week,
+                    y = percentage)) +
+      geom_point(aes(x = week,
+                     y = percentage)) +
+  geom_smooth(method = "lm", se = TRUE, color = "red") +
   
-* Syntax highlighting options (Line 8, `highlight`): `"default"`, `"tango"`, `"pygments"`, `"kate"`, `"monochrome"`, `"espresso"`, `"zenburn"`, `"haddock"`, or `"textmate"` (or `NULL` for no syntax highlighting)
+      theme(plot.title = element_text(size=15), 
+            plot.subtitle = element_text(size=10),
+            axis.text = element_text(size=10),
+            axis.title = element_text(size=10),
+            legend.text = element_text(size=10),
+            legend.title = element_text(size=10),
+            legend.key.size = unit(1, 'cm'),
+            plot.caption.position = "plot",
+            plot.caption = element_text(hjust = 0)) +
+      scale_colour_manual(values = c("Covid Cases" = "red")) +
+      labs(title = "The Distribution of New COVID-19 Cases",
+           subtitle = "During COVID-19 (Weeks 1-39)",
+           y = "Percentage of Cases",
+           x = "Week", caption = "Percentage = number of new cases in the nation for that week over number of new cases in the nation over all weeks")
+```
 
+We can see in ___, that the cases due to COVID-19 increased in general as we progress along weeks 1 to 39. If we look closely, we can see that the number of new cases per week actually increases. This means that COVID-19 is technically getting worse. We can see this by the positive slope of the graph of the number of cases/deaths per week vs. week as shown below. To quantify the change we tried to construct a difference graph. The correlation coefficient for this visualization turned out to be greater than 0.33, and hence we can statistically rely on it for conclusions.
 
-You can explore additional customizable YAML options by looking at the [**rmdformats** package](https://github.com/juba/rmdformats) page or running, for example, `?rmdformats::readthedown()` to see the help documentation for a particular theme from the package.
+```{r covid-rate-graph, echo=FALSE, message=FALSE}
+timeline_graph_up <- read_csv("blog-project/shiny/timeline_graph.csv") %>%
+  filter(response == "Covid Cases",state == "National") %>%
+  mutate(diff = c(0.0502819,-0.02102229,0.003524543,0.00346709,0.003278399,0.00338682,0.003405226,0.004120342,0.005832997,0.007556452,0.00889334,0.01023633,0.1948606,0.02660811,0.0270676,0.03067617,0.03842486,0.05539291,0.09359305,0.1149099,0.1406222,0.2908593,0.12467,0.08348704,0.05102942,0.04244973,0.03846894,0.08787491,0.0341228,0.02320477,0.01348673,0.008044775,0.008935341,0.05086234,0.07038062,0.09734421,0.1046851,0.09571224,0.07334682))
+#for (w in timeline_graph$week) {
+#  print(timeline_graph$percentage[w+1] - timeline_graph$percentage[w])
+#}
+
+covid_rate <- ggplot(data = timeline_graph_up,
+           mapping = aes(x = week,
+                         y = diff)) +
+      geom_line(aes(x = week,
+                    y = diff)) +
+      geom_point(aes(x = week,
+                     y = diff)) +
+      #geom_hline(yintercept = 19.933939, linetype = "dashed") +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+  geom_vline(xintercept = c(12, 14, 18, 25, 29, 34), linetype = "dashed") +
+      theme(plot.title = element_text(size=15), 
+            plot.subtitle = element_text(size=10),
+            axis.text = element_text(size=10),
+            axis.title = element_text(size=10),
+            legend.text = element_text(size=10),
+            legend.title = element_text(size=10),
+            legend.key.size = unit(1, 'cm')) +
+
+      labs(title = "The Rate of Change in Covid Cases",
+           subtitle = "During the Covid-19 Period",
+           y = "Percentage Difference Between Weeks",
+           x = "Week")
+
+cor(y = timeline_graph_up$diff,x = timeline_graph_up$week)
+
+covid_rate + 
+  annotate("text", x = 7, y = 0.23, label = "[2-14]", colour = "red") + 
+  geom_segment(aes(x = 8.8, y = 0.23, xend = 13, yend = 0.23),
+               arrow = arrow(length = unit(0.3, "cm"))) + 
+  annotate("text", x = 21.5, y = 0.01, label = "[18-25]", colour = "red") +
+  annotate("text", x = 31.5, y = 0.15, label = "[29-34]", colour = "red")
+```
+
+If we look at the change in percentage of covid cases across the weeks, we can see 2 major peaks and 1 valley that stands out from the general trend. The two spikes in the rate of change in COVID-19 occur from weeks 12-14 and 18-25 respectively. The valley occurs from weeks 29-34. Furthermore, we decided to use the time periods weeks 3-12, 14-17, and 35-39 as a control because the rate of change in Covid-19 cases did not change much during that time period. Using the control spatial data, we will indicate certain states that influenced the rate of change of new Covid-19 cases and compare the mental health of that time period.
+
+![](img/control-spatial.jpg){width=100%}
+
+![](img/cases-anxiety-spatial.jpg){width=100%}
+
+For the weeks 12-14, southern states like Texas, Louisiana, and Maryland and northeastern states like New York, Massachusetts, and New Jersey experienced a more rapid growth of new Covid-19 cases compared to the control. As for the distribution of anxiety, no state seemed to stand out other than New Mexico, which had unusually high percentages of adults experiencing symptoms of anxiety. For weeks 18-25, most of the states experienced a higher rate of change in Covid-19 cases; however, it was especially bad in the Midwestern states like North Dakota, South Dakota, and Wisconsin. Interestingly, Vermont had a drastically lower percentage as seen by the dark purple color change to a light yellow color. Oddly enough, the mental health of most of the states was better with the exception of Louisiana and Mississippi. For weeks 29-34, most of the states rate of change in Covid-19 cases became more similar to one another with the exception of Northeastern states like Vermont, New Hampshire, and Maine having dramatically higher rates of change. The West coast, Midwest, and South all generally had lower statistics. As for mental health, the West coast states had lower percentages while New York, Louisiana, and Mississippi were much worse. Although there are many variations among all these trends, it is not uncommon to see states in the same region either perform worse or better together. This is most likely due to the fact that states in certain regions are more politically aligned to one another compared to other states in different regions. Because the government and health policies play a huge role in how the U.S. responds to Covid-19 and other health epidemics like mental health, we will analyze government response.
+
+# Government Responses
+
+Actually do it this time :)
+
+# Limitations
+
+There were many limitations that we came across while investigating our research questions due to either our limited skillset in statistical analysis and creating data visualization and issues with the data itself. Therefore, we strongly urge the audience to take our results with caution. 
+
+When analyzing the mental health data provided by the Household Pulse Survey Public Use Files from CDC, we ran into some obstacles that prevented us from providing the best quality data and visualizations. Although we were given many dates to work with, there are gaps between every time period with some being only two days apart and others being weeks apart. The biggest time gap occurred between week 27 (2021-03-17 - 2021-03-29) and week 28 (2021-04-14 - 2021-04-26) with no data recorded for 16 days in between those time periods. These time gaps prevent us from gaining a more thorough dataset that better encapsulates the mental health journey throughout Covid-19. In other words, the lack of data due to the time gaps could very well be a confounding variable. Due to the nature of the survey, another limitation is nonresponse bias because there could be underrepresentation of certain groups and the number of people suffering from symptoms of depression and anxiety could be less than it actually is. Many people may not be comfortable with sharing their personal experiences with mental health while some may not even be aware that their mental health is suffering due to either cultural reasons, lack of mental health resources, and inaccessibility of mental health care. All of this could have potentially skewed the data. Lastly, we must remind ourselves that the adpated PHQ-2 (screener for depressive disorder) and GAD-2 (screener for generalized anxiety disorder) questions does not diagnose the individual with these disorders but rather indicates the warrant for further diagnostic evaluation. Therefore, it is very likely that not all of these individuals are suffering and diagnosed from generalized anxiety disorder and depressive disorder but rather experiencing isolated symptoms. 
+
+- Dhyey's limitation -
+
+- Ziji's limitation -
+
+# Further Exploration
+
+We think our study could be improved by further exploring specific states and its health policies and responses in terms of Covid cases and mental health. However, due to our limited statistical analysis knowledge, computational skillsets, and lack of time, we were not able to investigate as deeply and as thoroughly as we would have liked. Also, because our research questions were general, we focused a lot of our analysis and visualizations to encapsulate nationwide data. Therfore, it will be worthwhile to explore these data on a more state by state basis to find other conclusions and interesting results. 
+
+While exploring the spatial data, we found peculiar patterns concerning certain regions. For instance, New York was a state in which its rate of new Covid-19 cases and mental health performance fluctuated a lot throughout the time periods. New York is one of the most densely populated states (according to the 2020 Census) with a population of 19,453,561 people and 412.8 people per square mile. New York has reported a devastating number of 2,699,233 cases as of November 26, 202. Because of this, we think it will be meaningful to further investigate New York for other patterns of Covid-19 and mental health. We could investigate New York by its counties spatially and analyze twitter sentiment of influential public figures and of the general public.  
+
+- Ziji add something about twitter analysis in general -
+
+We want to reemphasize that we generalized anxiety disorder and depressive disorder as "mental health". This could be misleading as these two are not the only mental health disorders that people suffer from. Although anxiety disorders and mood disorders are one of the most common mental health disorders in America, there are so many other disorders and illnesses that should be explored as it deals with other aspects of mental health and targets other groups in the population. For future directions of this project, it would be beneficial to find data regarding other mental health disorders, such as psychotic disorders, dementia, and eating disorders during the Covid-19 period. We hope that through this possible extension of our research, the statistics and data visualization can reveal a clearer picture that could potentially shed light on the mental health of American citizens.
