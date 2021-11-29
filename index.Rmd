@@ -6,6 +6,7 @@ output:
   rmdformats::readthedown:
     thumbnails: false
     highlight: "kate"
+runtime: shiny
 ---
 
 ```{r setup, include = FALSE}
@@ -23,6 +24,7 @@ library(utils)
 library(wordcloud)
 library(ggwordcloud)
 library(tidytext)
+library(knitr)
 
 # Set code chunk defaults 
 knitr::opts_chunk$set(echo = FALSE, 
