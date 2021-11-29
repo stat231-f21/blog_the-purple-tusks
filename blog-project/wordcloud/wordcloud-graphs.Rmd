@@ -29,7 +29,12 @@ Considering the outliers we can look at the general response from US senators.
 
 ```{r wc-1}
 temp <- tweets %>% 
-  unnest_tokens(input = text, output = tokens)
+  unnest_tokens(input = text, output = tokens) %>% 
+  anti_join(stop_words, by = c("tokens" = "word")) %>%
+  select(state, week, tokens)
+
+setwd("~/Documents/Amherst/STAT 231 DATA SCIENCE/blog_the-purple-tusks/blog-project")
+write_csv2(temp, "data/textual/temp.csv")
 
 #Z2 Week 2 
 set.seed(50)
@@ -297,8 +302,16 @@ ggplot(temp_t, aes(x = reorder(tokens,count), y = count)) +
        x = "Word",
        y = "Count")
 
+setwd("~/Documents/Amherst/STAT 231 DATA SCIENCE/blog_the-purple-tusks/blog-project")
+test <- read_csv2("data/textual/senator_tweets.csv")
 
+test
 
+test <- test %>%
+  select(text,created_at)
+setwd("~/Documents/Amherst/STAT 231 DATA SCIENCE/blog_the-purple-tusks/blog-project")
+test %>%
+  write_csv2("data/textual/wordcloud_data.csv")
 
 ```
 
