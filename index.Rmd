@@ -264,7 +264,7 @@ To find out the reasons for these anomalies it is important to examine how the g
 
 Given increasing trends of anxiety and depression, we questioned if this is due to COVID-19 getting worse. In order to visualize this trend we created a line graph plotting the number of new COVID cases per week in the graph below.
 
-```{r covid-cases-graph, echo=FALSE, message=FALSE, fig.height = 4.5, fig.width = 6, fig.align = 'center'}
+```{r covid-cases-graph, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 6, fig.align = 'center'}
 timeline_graph <- read_csv("blog-project/shiny/timeline_graph.csv") %>%
   filter(response == "Covid Cases", state == "National")
 
@@ -326,7 +326,7 @@ covid_rate <- ggplot(data = timeline_graph_up,
            y = "Percentage Difference Between Weeks",
            x = "Week")
 
-cor(y = timeline_graph_up$diff,x = timeline_graph_up$week)
+#cor(y = timeline_graph_up$diff,x = timeline_graph_up$week)
 
 covid_rate + 
   annotate("text", x = 7, y = 0.23, label = "[2-14]", colour = "red") + 
@@ -364,6 +364,7 @@ ggplot(temp_s2, aes(x = week, y = prc)) +
        y = "Percentage*",
        caption = "*percentage is the number of words that week of each sentiment divided over total words of that sentiment")
 ```
+
 As stated in the earlier section about the data gathered, we scraped Tweets from US senators from the past two congresses in order to assess the public image of US officials meant to represent us. Each tweet was then split into individual words which then were analyzed using sentiment analysis. The graph above shows the proportion of each sentiment for each week, it helps present how each sentiment changed over time (but doesn’t compare the actual quantity of each sentiment). As the graph shows, the sentiments moved together in relative uniform fashion, most likely due to the total number of tweets each week changing. However the variance of each sentiment grew over the weeks especially at week 16. This shows a greater uncertainty in public communication from the government. Going from heavily positive and optimistic messaging to words of caution and concern in the span of a week serves no function in calming the nation during a national crisis.
 
 ## Trends in Common Words
@@ -373,69 +374,16 @@ Looking back at the periods that stood out during our COVID and mental health an
 * Week 3 - lowest point in anxiety
 * Week 18 - slight outlier in anxiety
 
-```{r mental-health-revisited, echo=FALSE, message=FALSE}
-# import data
-mental_health <- read_csv("blog-project/data/mental-health/mental_health.csv") %>%
-  filter(State == "National")
-
-# plot anxiety graph with ggplot
-anxiety_graph <- ggplot(data = mental_health,
-           mapping = aes(x = WEEK,
-                         y = anxiety_percentage)) +
-      geom_line(aes(x = WEEK,
-                    y = anxiety_percentage),
-                color = "red") +
-      geom_point(aes(x = WEEK,
-                     y = anxiety_percentage),
-                 color = "red") + 
-  geom_smooth(method='lm', formula = y~x) + 
-  geom_hline(yintercept = 32.6, linetype = "dashed") +
-  theme(plot.title = element_text(size=15), 
-            plot.subtitle = element_text(size=10),
-            axis.text = element_text(size=10),
-            axis.title = element_text(size=10),
-            legend.text = element_text(size=10),
-            legend.title = element_text(size=10),
-            legend.key.size = unit(1, 'cm'),
-            plot.caption.position = "plot",
-            plot.caption = element_text(hjust = 0)) +
-  labs(title = "The Percentage of People Who Experienced Symptoms of Anxiety",
-       subtitle = "During Covid (Weeks 1- 39)",
-       x = "Week",
-       y = "Percentage",
-       caption = "Percentage = number of people with anxiety over number of people who took the survey")
-
-df1 <- data.frame(x1 = 5, x2 = 2.3, y1 = 30, y2 = 32.5)
-df2 <- data.frame(x1 = 21.5, x2 = 18, y1 = 25.5, y2 = 23.7)
-
-anxiety_graph + 
-  annotate("text", x = 5.3, y = 29.2, label = "Week 2", colour = "darkblue") + 
-  geom_curve(
-    aes(x = x1, y = y1, xend = x2, yend = y2),
-    inherit.aes = FALSE,
-    data = df1,
-    arrow = arrow(length = unit(0.03, "npc"))) + 
-  annotate("text", x = 9.4, y = 10.3, label = "Week 3", colour = "darkblue") +
-  geom_segment(aes(x = 7.3, y = 10.2, xend = 3.5, yend = 10.2),
-               arrow = arrow(length = unit(0.3, "cm"))) + 
-  annotate("text", x = 24, y = 25.5, label = "Week 18", colour = "darkblue") + 
-  geom_curve(
-    aes(x = x1, y = y1, xend = x2, yend = y2),
-    inherit.aes = FALSE,
-    data = df2,
-    arrow = arrow(length = unit(0.03, "npc")))
-```
-
-Looking at the most common words in tweets regarding COVID, there are some obvious words that repeats and skews the data including words like: health, pandemic, coronavirus etc. After filtering out these words here is what we are left with.
+Looking at the most common words in tweets regarding COVID, there are some obvious words that repeat and skew the data including words like: health, pandemic, coronavirus etc. After filtering out these words here is what we are left with.
 
 ![](img/wordclouds.png){width=100%}
-![](img/wctotal.png){width=100%}
+![](img/wctotal.png){width=80%}
 
-![](img/wctotal_bar.png){width=100%}
+![](img/wctotal_bar.png){width=80%}
 
 It is interesting to note that “care” was the most common word among the entirety of our range of dates. However, when comparing with the overall data the conversation regarding the law wasn’t nearly as prevalent in the initial weeks. While there aren’t any strong correlations between the peaks and troughs of mental health, exploring this opened up interesting questions regarding trends of what US senators deemed important to tweet about. The first two weeks had words like “communities”, “workers”, and “public” lead the way while the overall and week 18 chart shows a much more political selection of words. To explore these trends we decided to look at the trend of these specific words. 
 
-```{r word-trends, echo=FALSE, message=FALSE}
+```{r word-trends, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 5.5, fig.align = 'center'}
 word_cloud <- read_csv2("blog-project/data/textual/senator_wordcloud.csv")
 sentiments <- read_csv2("blog-project/data/textual/twitter_sentiments.csv")
 tweets <- read_csv2("blog-project/data/textual/senator_tweets_covid.csv")
@@ -482,10 +430,12 @@ tempx <- word_trend %>%
   group_by(week) %>%
   summarise(sum = sum(sum))
 ```
+
 These two graphs clearly show an opposing trend in what is important to the government with r values of 0.33 and -0.22. As COVID raged on, the focus turned away from the economy and how it affected the people of the US and became a political debate. With senators of both parties debating whose fault the pandemic lies on, the people's mental health worsened. Having personally experienced the fierceness that political debate has acquired in recent years, we wanted to see the sentiment analysis.
 
 ## Sentiments
-```{r sentiment-total, echo=FALSE, message=FALSE}
+
+```{r sentiment-total, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 6, fig.align = 'center'}
 temp_sent <- sentiments %>%
   group_by(sentiments) %>%
   summarize(sum = sum(count))
@@ -500,8 +450,10 @@ temp_sent %>%
        x = "Sentiment",
        y = "Count")
 ```
+
 Looking at this it seems as though the majority of the vocabulary used by senators are positive and encouraging, however like the first graph showed it is the inconsistency in a unified positive message that caused uncertainty in both how we should react to the pandemic and how the government will fight the spread of the virus.
-```{r sentiment-trend, echo=FALSE, message=FALSE}
+
+```{r sentiment-trend, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 6.5, fig.align = 'center'}
 temp_sent <- sentiments %>%
   group_by(sentiments, week) %>%
   summarize(prc = mean(percentage)) %>%
@@ -522,42 +474,21 @@ ggplot(aes(x = week, y = prc)) +
        caption = "*Percentage is number of each sentiment over total words for that week")
 ```
 
-```{r covid-cases-graph-revisited, echo=FALSE, message=FALSE, fig.height = 4.5, fig.width = 6, fig.align = 'center'}
-timeline_graph <- read_csv("blog-project/shiny/timeline_graph.csv") %>%
-  filter(response == "Covid Cases", state == "National")
-
-ggplot(data = timeline_graph,
-           mapping = aes(x = week,
-                         y = percentage)) +
-      geom_line(aes(x = week,
-                    y = percentage)) +
-      geom_point(aes(x = week,
-                     y = percentage)) +
-  geom_smooth(method = "lm", se = TRUE, color = "red") +
-  
-      theme(plot.title = element_text(size=15), 
-            plot.subtitle = element_text(size=10),
-            axis.text = element_text(size=10),
-            axis.title = element_text(size=10),
-            legend.text = element_text(size=10),
-            legend.title = element_text(size=10),
-            legend.key.size = unit(1, 'cm'),
-            plot.caption.position = "plot",
-            plot.caption = element_text(hjust = 0)) +
-      scale_colour_manual(values = c("Covid Cases" = "red")) +
-      labs(title = "The Distribution of New COVID-19 Cases",
-           subtitle = "During COVID-19 (Weeks 1-39)",
-           y = "Percentage of Cases",
-           x = "Week", caption = "Percentage = number of new cases in the nation for that week over number of new cases in the nation over all weeks")
-```
 ![](img/top-words.png){width=100%}
 Here you can see the change in each sentiment over the weeks. While there isn’t any significance in the distribution of each sentiment, the slight changes showed decreases in positive and trustworthy sentiments while an increase in angry and fearful sentiments. These changes reflect the trend of COVID, an ever increasing number of new cases with no end in sight. In a time that required the most out of our government to unify and drive our country forward, they instead got entangled in partisan politics that provided little help in our fight against the pandemic and for our mental health.
 
+# Shiny Apps
+
+To explore other features of our spatial data, timeline graph, and wordcloud, click the links below:
+
+* [spatial data](https://dmavani25.shinyapps.io/BlogSpatial/)
+* [timeline graph](https://stat231.shinyapps.io/timeline-series/)
+* [wordcloud](https://zijizhou.shinyapps.io/Senator-Wordcloud/)
 
 
 # Limitations
 
-There were many limitations that we came across while investigating our research questions due to either our limited skillset in statistical analysis and creating data visualization and issues with the data itself. Therefore, we strongly urge the audience to take our results with caution. 
+There were many limitations that we came across while investigating our research questions due to either our limited skill set in statistical analysis and creating data visualization and issues with the data itself. Therefore, we strongly urge the audience to take our results with caution. 
 
 When analyzing the mental health data provided by the Household Pulse Survey Public Use Files from CDC, we ran into some obstacles that prevented us from providing the best quality data and visualizations. Although we were given many dates to work with, there are gaps between every time period with some being only two days apart and others being weeks apart. The biggest time gap occurred between week 27 (2021-03-17 - 2021-03-29) and week 28 (2021-04-14 - 2021-04-26) with no data recorded for 16 days in between those time periods. These time gaps prevent us from gaining a more thorough dataset that better encapsulates the mental health journey throughout Covid-19. In other words, the lack of data due to the time gaps could very well be a confounding variable. Due to the nature of the survey, another limitation is nonresponse bias because there could be underrepresentation of certain groups and the number of people suffering from symptoms of depression and anxiety could be less than it actually is. Many people may not be comfortable with sharing their personal experiences with mental health while some may not even be aware that their mental health is suffering due to either cultural reasons, lack of mental health resources, and inaccessibility of mental health care. All of this could have potentially skewed the data. Lastly, we must remind ourselves that the adpated PHQ-2 (screener for depressive disorder) and GAD-2 (screener for generalized anxiety disorder) questions does not diagnose the individual with these disorders but rather indicates the warrant for further diagnostic evaluation. Therefore, it is very likely that not all of these individuals are suffering and diagnosed from generalized anxiety disorder and depressive disorder but rather experiencing isolated symptoms. 
 
@@ -568,7 +499,7 @@ With our analysis of senator tweets came more limitations. By using Twitter’s 
 
 # Further Exploration
 
-We think our study could be improved by further exploring specific states and its health policies and responses in terms of Covid cases and mental health. However, due to our limited statistical analysis knowledge, computational skillsets, and lack of time, we were not able to investigate as deeply and as thoroughly as we would have liked. Also, because our research questions were general, we focused a lot of our analysis and visualizations to encapsulate nationwide data. Therfore, it will be worthwhile to explore these data on a more state by state basis to find other conclusions and interesting results. 
+We think our study could be improved by further exploring specific states and its health policies and responses in terms of Covid cases and mental health. However, due to our limited statistical analysis knowledge, computational skill sets, and lack of time, we were not able to investigate as deeply and as thoroughly as we would have liked. Also, because our research questions were general, we focused a lot of our analysis and visualizations to encapsulate nationwide data. Therfore, it will be worthwhile to explore these data on a more state by state basis to find other conclusions and interesting results. 
 
 While exploring the spatial data, we found peculiar patterns concerning certain regions. For instance, New York was a state in which its rate of new Covid-19 cases and mental health performance fluctuated a lot throughout the time periods. New York is one of the most densely populated states (according to the 2020 Census) with a population of 19,453,561 people and 412.8 people per square mile. New York has reported a devastating number of 2,699,233 cases as of November 26, 202. Because of this, we think it will be meaningful to further investigate New York for other patterns of Covid-19 and mental health. We could investigate New York by its counties spatially and analyze twitter sentiment of influential public figures and of the general public.  
 
