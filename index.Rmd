@@ -257,7 +257,8 @@ mplot(gm1, which = 1)
 
 A residuals vs. fitted plot is an easy way to detect unequal error variances, outliers, and non-linearity. As you can see in the residuals vs. fitted plot, weeks 2, 3, and 18 are either significantly higher or below the line at 0 while the rest of the points are randomly scattered above and below the line. This shows that mental health varied widely throughout the 39 weeks and was particularly unstable in the early weeks of Covid probably due to reasons like people adapting to the different and difficult lifestyle of social isolation and quarantining. The percentage of people suffering from symptoms of anxiety peaked at week 18, which corresponds to October 28, 2020 to November 9, 2020, relative to other weeks towards the end of 2020. Although we cannot deduce anything conclusively, this may be due to the fact that on November 4th the U.S. hit a milestone with 100,000 new Covid-19 cases reported in a single day. This unprecedented spike in cases led to a shortage of N95 masks at health care facilities. On November 5th, there were many published studies that indicated difficulties in nationwide Covid-19 immunity as the path to vaccinating the majority of the country for Covid-19, thus achieving sufficient herd immunity, will be a difficult task. This most likely gave rise to unease and a sense of hopelessness across the nation.
 
-![](img/anxiety-spatial.jpg){width=100%}
+![](img/anxiety-1.jpg){width=100%}
+![](img/anxiety-2.jpg){width=50%}
 
 Looking into the three weeks of outliers we wanted to see if it was a national trend where the states somewhat uniformly worsened (and improved for week 3) mentally or if a region in the country influenced the average with their own anomaly. The three graphs above show the state distribution of anxiety. The biggest difference lies in the Southeast region as it severely worsened from the initial weeks into week 18. Week 3 shows more of a national improvement with no clear outliers compared to the two other graphs that showed peak numbers. While there was also a big variance between the three weeks among the midwestern states, the population of those states are not big enough to skew the national trend. 
 To find out the reasons for these anomalies it is important to examine how the government heralded the public opinion. Below are the word clouds of Tweets from US senators for the weeks in question.
@@ -295,7 +296,7 @@ ggplot(data = timeline_graph,
            x = "Week", caption = "Percentage = number of new cases in the nation for that week over number of new cases in the nation over all weeks")
 ```
 
-We can see in ___, that the cases due to COVID-19 increased in general as we progress along weeks 1 to 39. If we look closely, we can see that the number of new cases per week actually increases. This means that COVID-19 is technically getting worse. We can see this by the positive slope of the graph of the number of cases/deaths per week vs. week as shown below. To quantify the change we tried to construct a difference graph. The correlation coefficient for this visualization turned out to be greater than 0.33, and hence we can statistically rely on it for conclusions.
+We can see in the above graph that the cases due to COVID-19 increased in general as we progress along weeks 1 to 39. If we look closely, we can see that the number of new cases per week actually increases. This means that COVID-19 is technically getting worse. We can see this by the positive slope of the graph of the number of cases/deaths per week vs. week as shown below. To quantify the change we tried to construct a difference graph. The correlation coefficient for this visualization turned out to be greater than 0.33, and hence we can statistically rely on it for conclusions.
 
 ```{r covid-rate-graph, echo=FALSE, message=FALSE}
 timeline_graph_up <- read_csv("blog-project/shiny/timeline_graph.csv") %>%
@@ -340,10 +341,11 @@ covid_rate +
 
 If we look at the change in percentage of covid cases across the weeks, we can see 2 major peaks and 1 valley that stands out from the general trend. The two spikes in the rate of change in COVID-19 occur from weeks 12-14 and 18-25 respectively. The valley occurs from weeks 29-34. Furthermore, we decided to use the time periods weeks 3-12, 14-17, and 35-39 as a control because the rate of change in Covid-19 cases did not change much during that time period. Using the control spatial data, we will indicate certain states that influenced the rate of change of new Covid-19 cases and compare the mental health of that time period.
 
-![](img/control-spatial.jpg){width=100%}
+![](img/control.jpg){width=100%}
 
-![](img/cases-anxiety-spatial.jpg){width=100%}
-
+![](img/case-anxiety-1.jpg){width=100%}
+![](img/case-anxiety-2.jpg){width=100%}
+![](img/case-anxiety-3.jpg){width=100%}
 For the weeks 12-14, southern states like Texas, Louisiana, and Maryland and northeastern states like New York, Massachusetts, and New Jersey experienced a more rapid growth of new Covid-19 cases compared to the control. As for the distribution of anxiety, no state seemed to stand out other than New Mexico, which had unusually high percentages of adults experiencing symptoms of anxiety. For weeks 18-25, most of the states experienced a higher rate of change in Covid-19 cases; however, it was especially bad in the Midwestern states like North Dakota, South Dakota, and Wisconsin. Interestingly, Vermont had a drastically lower percentage as seen by the dark purple color change to a light yellow color. Oddly enough, the mental health of most of the states was better with the exception of Louisiana and Mississippi. For weeks 29-34, most of the states rate of change in Covid-19 cases became more similar to one another with the exception of Northeastern states like Vermont, New Hampshire, and Maine having dramatically higher rates of change. The West coast, Midwest, and South all generally had lower statistics. As for mental health, the West coast states had lower percentages while New York, Louisiana, and Mississippi were much worse. Although there are many variations among all these trends, it is not uncommon to see states in the same region either perform worse or better together. This is most likely due to the fact that states in certain regions are more politically aligned to one another compared to other states in different regions. Because the government and health policies play a huge role in how the U.S. responds to Covid-19 and other health epidemics like mental health, we will analyze government response.
 
 # Government Responses
