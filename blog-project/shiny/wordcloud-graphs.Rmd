@@ -14,12 +14,13 @@ library(ggwordcloud)
 library(RColorBrewer)
 library(mosaic)
 library(tidytext)
+library(gridExtra)
 
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-setwd("~/Documents/Amherst/STAT 231 DATA SCIENCE/blog_the-purple-tusks/blog-project")
+setwd("./..")
 
 word_cloud <- read_csv2("data/textual/senator_wordcloud.csv")
 sentiments <- read_csv2("data/textual/twitter_sentiments.csv")
@@ -34,12 +35,11 @@ temp <- tweets %>%
   anti_join(stop_words, by = c("tokens" = "word")) %>%
   select(state, week, tokens)
 
-setwd("~/Documents/Amherst/STAT 231 DATA SCIENCE/blog_the-purple-tusks/blog-project")
+setwd("./..")
 write_csv2(temp, "data/textual/temp.csv")
 
 #Z2 Week 2 
 set.seed(50)
-word_cloud
 temp_wc <- temp %>%
   filter(week == 2) %>% 
   anti_join(stop_words, by = c("tokens" = "word")) %>%
@@ -48,6 +48,7 @@ temp_wc <- temp %>%
   arrange(desc(n))
 pal <- brewer.pal(9, "Set1")
 pal <- pal[-(1:2)]
+par(mfrow=c(1,2))
 wordcloud(words = temp_wc$tokens, 
           freq = temp_wc$n,
           rot.per = .15,
@@ -102,7 +103,6 @@ temp_wc <- temp %>%
   arrange(desc(n))
 pal <- brewer.pal(9, "Set1")
 pal <- pal[-(1:2)]
-par(mfrow=c(1,2))
 wordcloud(words = temp_wc$tokens, 
           freq = temp_wc$n,
           rot.per = .15,
@@ -118,6 +118,7 @@ temp_wc[1:9,] %>%
        subtitle = "Week 18",
        y = "Count",
        x = "Word")
+
 #end
 
 #Wordcloud total
@@ -303,14 +304,6 @@ ggplot(temp_t, aes(x = reorder(tokens,count), y = count)) +
        x = "Word",
        y = "Count")
 
-setwd("~/Documents/Amherst/STAT 231 DATA SCIENCE/blog_the-purple-tusks/blog-project")
-test <- read_csv2("data/textual/senator_tweets.csv")
-
-test <- test %>%
-  select(text,created_at)
-setwd("~/Documents/Amherst/STAT 231 DATA SCIENCE/blog_the-purple-tusks/blog-project")
-#test %>%
- # write_csv2("data/textual/wordcloud_data.csv")
 
 ```
 

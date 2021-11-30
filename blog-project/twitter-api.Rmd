@@ -301,59 +301,12 @@ write_csv2(word_count, "data/textual/twitter_sentiments.csv")
 
 write_csv2(word_count_national, "data/textual/ntl_twitter_sentiments.csv")
 
-#test code
-ymd(20090904)
+test <- read_csv2("data/textual/senator_tweets.csv")
 
-data <- senator_tweets %>% 
-      filter(grepl("COVID",text)) %>%
-      filter(created_at >= as.Date(ymd(20090904)) & created_at <= as.Date(ymd(20110904))) %>%
-      unnest_tokens(input = text, output = tokens) %>% 
-      #get rid of stop words
-      anti_join(stop_words, by = c("tokens" = "word")) %>%
-      count(tokens) %>%
-      #join with sentiments
-      inner_join(get_sentiments(lexicon = "afinn"), by = c("tokens" = "word")) %>%
-      arrange(desc(n))
-data
-
-senator_tweets %>% 
-      filter(created_at >= as.Date(ymd(20090904)) & created_at <= as.Date(ymd(20110904))) %>%
-      unnest_tokens(input = text, output = tokens) %>% 
-      #get rid of stop words
-      anti_join(stop_words, by = c("tokens" = "word")) %>%
-      count(tokens) %>%
-      #join with sentiments
-      inner_join(get_sentiments(lexicon = "afinn"), by = c("tokens" = "word"))  %>%
-      arrange(desc(n))
-
-wordcloud(words = data$tokens,freq = data$n, max.words = 30)
-
-library(usmap)
-
-word_count <- read_csv2("data/textual/twitter_sentiments.csv")
-
-word_count <- inner_join(word_count, tibble(state = state.name,
-                              abv = state.abb))
-  filter(sentiments == "positive",
-         week == 6)
-
-word_count %>%
-  filter(state == "Texas")
-
-plot_usmap(data = word_count, values = "percentage") +
-  scale_fill_continuous(low = "white", high = "red", name = "Positive Sentiment", label = scales::comma)
-
-word_count %>%
-  filter(state == "California") %>%
-  ggplot(aes(x = week, y = count / sum)) +
-  geom_line(aes(color = sentiments))
-
-word_count_national %>%
-  filter(!week == 0) %>% 
-  ggplot(aes(x = week, y = count / sum)) +
-  geom_col(aes(fill = sentiments))
-
-
+test <- test %>%
+  select(text,created_at)
+test %>%
+ write_csv2("data/textual/wordcloud_data.csv")
 ```
 
 ```{r wordcloud}
