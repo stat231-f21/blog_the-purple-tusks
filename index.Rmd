@@ -413,10 +413,6 @@ word_trend %>%
        x = "Week",
        y = "Count",
        caption = "r = 0.33")
-tempx <- word_trend %>%
-  filter(tokens %in% c("law","act","bill")) %>%
-  group_by(week) %>%
-  summarise(sum = sum(sum))
 
 word_trend %>%
   filter(tokens %in% c("workers","jobs","economy")) %>%
@@ -430,10 +426,6 @@ word_trend %>%
        x = "Week",
        y = "Count",
        caption = "r = -0.22")
-tempx <- word_trend %>%
-  filter(tokens %in% c("workers","jobs","economy")) %>%
-  group_by(week) %>%
-  summarise(sum = sum(sum))
 ```
 
 These two graphs clearly show an opposing trend in what is important to the government with r values of 0.33 and -0.22. As COVID raged on, the focus turned away from the economy and how it affected the people of the US and became a political debate. With senators of both parties debating whose fault the pandemic lies on, the people's mental health worsened. Having personally experienced the fierceness that political debate has acquired in recent years, we wanted to see the sentiment analysis.
