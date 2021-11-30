@@ -186,7 +186,7 @@ covid_barchart <- ggplot(covid_anxiety,
 covid_barchart
 ```
 
-During 2019, about 15.8% of adults experienced symptoms of anxiety. This percentage is lower than the percent of adults who experienced symptoms of anxiety during the time period of Covid-19 (April 23, 2020 - October 11, 2021), which we found to be 18%. The increase in adults experiencing symptoms of anxiety highlights how detrimental Covid-19 was for people’s mental wellbeing. 
+During 2019, about 15.6% of adults experienced symptoms of anxiety. This percentage is lower than the percent of adults who experienced symptoms of anxiety during the time period of Covid-19 (April 23, 2020 - October 11, 2021), which we found to be 18%. The increase in adults experiencing symptoms of anxiety highlights how detrimental Covid-19 was for people’s mental wellbeing. 
 
 ## Mental Health During Covid-19
 
