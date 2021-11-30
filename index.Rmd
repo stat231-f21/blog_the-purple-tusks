@@ -1,12 +1,11 @@
 ---
-title: "Come Up With Title"
+title: "The National Struggle for our Wellbeing During a Global Pandemic"
 author: "The Purple Tusks"
 date: "November 2021"
 output:
   rmdformats::readthedown:
     thumbnails: false
     highlight: "kate"
-runtime: shiny
 ---
 
 ```{r setup, include = FALSE}
@@ -35,7 +34,6 @@ knitr::opts_chunk$set(echo = FALSE,
 # Set R environment options
 options(knitr.kable.NA = '')
 ```
-
 # Motivations
 
 As COVID uprooted every aspect of our lives and put us into isolation, the importance of mental health has been recognized more and more. The initial wave of COVID was filled with fear, confusion, loneliness and many other unexpected emotions. Debates over government response became more and more partisan as the pandemic started becoming the new normal. 
@@ -255,13 +253,13 @@ gm1 <- lm(anxiety_percentage ~ WEEK, data = mental_health)
 mplot(gm1, which = 1)
 ```
 
-A residuals vs. fitted plot is an easy way to detect unequal error variances, outliers, and non-linearity. It plots the residuals - difference between the observed value of the dependent variable and the predicted value. If the points in a residual plot are randomly dispersed around the horizontal axis, constant variance is likely to be true, thus indicating linear regression to be an appropriate model. As you can see in the residuals vs. fitted plot, weeks 2, 3, and 18 are either significantly higher or below the line at 0 while the rest of the points are randomly scattered above and below the line. This shows that mental health varied consistently throughout the 39 weeks and but was particularly unstable in the early weeks of Covid probably due to reasons like people adapting to the different and difficult lifestyle of social isolation and quarantining. After phase 1, the percentage of people suffering from symptoms of anxiety peaked at week 18, which corresponds to October 28, 2020 to November 9, 2020, relative to other weeks towards the end of 2020. Although we cannot deduce anything conclusively, this may be due to the fact that on November 4th the U.S. hit a milestone with 100,000 new Covid-19 cases reported in a single day. This unprecedented spike in cases led to a shortage of N95 masks at health care facilities. On November 5th, there were many published studies that indicated difficulties in nationwide Covid-19 immunity as the path to vaccinating the majority of the country for Covid-19, thus achieving sufficient herd immunity, will be a difficult task. This most likely gave rise to unease and a sense of hopelessness across the nation.
+A residuals vs. fitted plot is an easy way to detect unequal error variances, outliers, and non-linearity. It plots the residuals - difference between the observed value of the dependent variable and the predicted value. If the points in a residual plot are randomly dispersed around the horizontal axis, constant variance is likely to be true, thus indicating linear regression to be an appropriate model. As you can see in the residuals vs. fitted plot, weeks 2, 3, and 18 are either significantly higher or below the line at 0 while the rest of the points are randomly scattered above and below the line. This shows that the variance of mental health was generally consistent throughout the 39 weeks with the exception of in the early weeks of Covid and week 18. The variation in the weeks 2-3 are probably due to reasons like people adapting to the different and difficult lifestyle of social isolation and quarantining. After phase 1, the percentage of people suffering from symptoms of anxiety peaked at week 18, which corresponds to October 28, 2020 to November 9, 2020, relative to other weeks towards the end of 2020. Although we cannot deduce anything conclusively, this may be due to the fact that on November 4th the U.S. hit a milestone with 100,000 new Covid-19 cases reported in a single day. This unprecedented spike in cases led to a shortage of N95 masks at health care facilities. On November 5th, there were many published studies that indicated difficulties in nationwide Covid-19 immunity as the path to vaccinating the majority of the country for Covid-19, thus achieving sufficient herd immunity, will be a difficult task. This most likely gave rise to unease and a sense of hopelessness across the nation.
 
 ![](img/anxiety-1.jpg){width=100%}
 ![](img/anxiety-2.jpg){width=50%}
 
 Looking into the three weeks of outliers we wanted to see if it was a national trend where the states somewhat uniformly worsened (and improved for week 3) mentally or if a region in the country influenced the average with their own anomaly. The three graphs above show the state distribution of anxiety. The biggest difference lies in the Southeast region as it severely worsened from the initial weeks into week 18. Week 3 shows more of a national improvement with no clear outliers compared to the two other graphs that showed peak numbers. While there was also a big variance between the three weeks among the Midwestern states, the population of those states are not big enough to skew the national trend. 
-To find out the reasons for these anomalies it is important to examine how the government heralded the public opinion.
+To find out the reasons for these anomalies it is important to examine how these trends line up with the development of COVID in our country.
 
 # Covid-19
 
@@ -375,11 +373,13 @@ As stated in the earlier section about the data gathered, we scraped Tweets from
 ## Trends in Common Words
 
 Looking back at the periods that stood out during our COVID and mental health analysis, we wondered if there are any clues to be found on more reasons behind those peaks and troughs. Here were the dates that stood out for mental health: 
+
 * Week 2 - peak in anxiety
 * Week 3 - lowest point in anxiety
 * Week 18 - slight outlier in anxiety
 
 Looking at the most common words in tweets regarding COVID, there are some obvious words that repeat and skew the data including words like: health, pandemic, coronavirus etc. After filtering out these words here is what we are left with.
+
 
 ![](img/wordclouds.png){width=100%}
 ![](img/wctotal.png){width=80%}
@@ -392,8 +392,8 @@ It is interesting to note that “care” was the most common word among the ent
 word_cloud <- read_csv2("blog-project/data/textual/senator_wordcloud.csv")
 sentiments <- read_csv2("blog-project/data/textual/twitter_sentiments.csv")
 tweets <- read_csv2("blog-project/data/textual/senator_tweets_covid.csv")
-
 temp <- read_csv2("blog-project/data/textual/temp.csv")
+
 
 word_trend <-  temp %>% 
   filter(week != 0) %>%

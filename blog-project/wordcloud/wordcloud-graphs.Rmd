@@ -13,6 +13,7 @@ library(wordcloud)
 library(ggwordcloud)
 library(RColorBrewer)
 library(mosaic)
+library(tidytext)
 
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -101,13 +102,13 @@ temp_wc <- temp %>%
   arrange(desc(n))
 pal <- brewer.pal(9, "Set1")
 pal <- pal[-(1:2)]
+par(mfrow=c(1,2))
 wordcloud(words = temp_wc$tokens, 
           freq = temp_wc$n,
           rot.per = .15,
           colors = pal,
           random.order = T,
           max.words = 150)
-
 temp_wc[1:9,] %>%
   ggplot(aes(x = reorder(tokens,n), y = n)) +
   geom_col() +
@@ -305,13 +306,11 @@ ggplot(temp_t, aes(x = reorder(tokens,count), y = count)) +
 setwd("~/Documents/Amherst/STAT 231 DATA SCIENCE/blog_the-purple-tusks/blog-project")
 test <- read_csv2("data/textual/senator_tweets.csv")
 
-test
-
 test <- test %>%
   select(text,created_at)
 setwd("~/Documents/Amherst/STAT 231 DATA SCIENCE/blog_the-purple-tusks/blog-project")
-test %>%
-  write_csv2("data/textual/wordcloud_data.csv")
+#test %>%
+ # write_csv2("data/textual/wordcloud_data.csv")
 
 ```
 

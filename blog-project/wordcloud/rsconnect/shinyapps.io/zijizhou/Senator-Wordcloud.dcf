@@ -5,10 +5,10 @@ account: zijizhou
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5096652
-bundleId: 5303640
+bundleId: 5307393
 url: https://zijizhou.shinyapps.io/Senator-Wordcloud/
-when: 1638164101.64231
-lastSyncTime: 1638164101.64233
+when: 1638229666.84153
+lastSyncTime: 1638229666.84154
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: timeline_graph.csv|wordcloud-graphs.Rmd|wordcloud.R|z1.png

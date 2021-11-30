@@ -8,10 +8,14 @@ library(wordcloud)
 library(ggwordcloud)
 library(lubridate)
 library(tidytext)
+library(RColorBrewer)
 
 
 # import data
 senator_tweets <- read.csv2("wordcloud_data.csv")
+
+pal <- brewer.pal(9, "Set1")
+pal <- pal[-(1:2)]
 
 
 #############################################################
@@ -88,6 +92,7 @@ server <- function(input, output){
               freq = wc_data()$n, 
               rot.per = .15,
               random.order = T,
+              color = pal,
               max.words = 150
               )
   }, height = 800, width = 600)
