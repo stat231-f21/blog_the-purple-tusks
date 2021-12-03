@@ -1,6 +1,6 @@
 ---
 title: "The National Struggle for our Wellbeing During a Global Pandemic"
-author: "The Purple Tusks"
+author: "The Purple Tusks: Dhyey Mavani, Kayla Ko, Ziji Zhou"
 date: "November 2021"
 output:
   rmdformats::readthedown:
