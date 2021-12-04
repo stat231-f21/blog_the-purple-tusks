@@ -143,9 +143,8 @@ library(tidyverse)
 timeline_graph_up <- read_csv("timeline_graph.csv") %>%
   filter(response == "Covid Cases",state == "National") %>%
   mutate(diff = c(0.0502819,-0.02102229,0.003524543,0.00346709,0.003278399,0.00338682,0.003405226,0.004120342,0.005832997,0.007556452,0.00889334,0.01023633,0.1948606,0.02660811,0.0270676,0.03067617,0.03842486,0.05539291,0.09359305,0.1149099,0.1406222,0.2908593,0.12467,0.08348704,0.05102942,0.04244973,0.03846894,0.08787491,0.0341228,0.02320477,0.01348673,0.008044775,0.008935341,0.05086234,0.07038062,0.09734421,0.1046851,0.09571224,0.07334682))
-#for (w in timeline_graph$week) {
-#  print(timeline_graph$percentage[w+1] - timeline_graph$percentage[w])
-#}
+
+#write.csv(timeline_graph_up, "diff_graph_data.csv")
 
 ggplot(data = timeline_graph_up,
            mapping = aes(x = week,

@@ -296,21 +296,15 @@ ggplot(data = timeline_graph,
 We can see in the above graph that the cases due to COVID-19 increased in general as we progress along weeks 1 to 39. If we look closely, we can see that the number of new cases per week actually increases. This means that COVID-19 is technically getting worse. We can see this by the positive slope of the graph of the number of cases per week vs. week as shown below. To quantify the change we tried to construct a difference graph. The correlation coefficient for this visualization turned out to be greater than 0.33, and hence we can statistically rely on it for conclusions.
 
 ```{r covid-rate-graph, echo=FALSE, message=FALSE}
-timeline_graph_up <- read_csv("blog-project/shiny/timeline_graph.csv") %>%
-  filter(response == "Covid Cases",state == "National") %>%
-  mutate(diff = c(0.0502819,-0.02102229,0.003524543,0.00346709,0.003278399,0.00338682,0.003405226,0.004120342,0.005832997,0.007556452,0.00889334,0.01023633,0.1948606,0.02660811,0.0270676,0.03067617,0.03842486,0.05539291,0.09359305,0.1149099,0.1406222,0.2908593,0.12467,0.08348704,0.05102942,0.04244973,0.03846894,0.08787491,0.0341228,0.02320477,0.01348673,0.008044775,0.008935341,0.05086234,0.07038062,0.09734421,0.1046851,0.09571224,0.07334682))
-#for (w in timeline_graph$week) {
-#  print(timeline_graph$percentage[w+1] - timeline_graph$percentage[w])
-#}
+diff_data <- read_csv("blog-project/data/covid/diff_graph_data.csv")
 
-covid_rate <- ggplot(data = timeline_graph_up,
+covid_rate <- ggplot(data = diff_data,
            mapping = aes(x = week,
                          y = diff)) +
       geom_line(aes(x = week,
                     y = diff)) +
       geom_point(aes(x = week,
                      y = diff)) +
-      #geom_hline(yintercept = 19.933939, linetype = "dashed") +
   geom_smooth(method = "lm", se = TRUE, color = "blue") +
   geom_vline(xintercept = c(12, 14, 18, 25, 29, 34), linetype = "dashed") +
       theme(plot.title = element_text(size=15), 
@@ -325,8 +319,6 @@ covid_rate <- ggplot(data = timeline_graph_up,
            subtitle = "During the Covid-19 Period",
            y = "Percentage Difference Between Weeks",
            x = "Week")
-
-#cor(y = timeline_graph_up$diff,x = timeline_graph_up$week)
 
 covid_rate + 
   annotate("text", x = 7, y = 0.23, label = "[2-14]", colour = "red") + 
