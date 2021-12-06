@@ -89,7 +89,7 @@ Dates were classified as weeks as follows:
 |19. 2020-11-11 to 2020-11-23 | 39. 2021-09-29 to 2021-10-11|
 |20. 2020-11-25 to 2020-12-07 | 
 
-## Covid Cases and Deaths Data
+## COVID Cases and Deaths Data
 
 The dataset which we used is published by the New York Times. The dataset is in itself free to use for any non-commercial purposes. The cases represent the total number of new active positive cases at that point in time and at the given place, which takes into account the people who recovered from COVID-19. The deaths represent the total number of deaths at that point in time and at the given place. 
 
@@ -99,11 +99,12 @@ We wrangled the dataset to arrange it in a weekly fashion consistent with the me
 
 ![Twitter for Developers](img/twitter-api.jpg){width=60%}
 
-Twitter is one of the biggest social media platforms in the world, with [396 million monthly users](https://datareportal.com/reports/digital-2021-april-global-statshot). In addition to the huge user base, Twitter is a primarily text based social media platform, allowing for easier analysis of qualitative data compared to photo sharing platforms. During the terms of the past two presidents, the platform was also popularized as a political platform for politicians to directly communicate to their constituents. With over 300 thousand tweets from US senators pulled from Twitter’s official API, there is a huge quantity of data to analyze and to even out the short-comings of sentiment and textual analysis. 
+Twitter is one of the biggest social media platforms in the world, with [396 million monthly users](https://datareportal.com/reports/digital-2021-april-global-statshot). In addition to the huge user base, Twitter is a primarily text based social media platform, allowing for easier analysis of qualitative data compared to photo sharing platforms. During the terms of the past two presidents, the platform was also popularized as a political platform for politicians to directly communicate to their constituents. With over 300 thousand tweets from US senators pulled from [Twitter's Official API](https://developer.twitter.com/en), there is a huge quantity of data to analyze and to even out the short-comings of sentiment and textual analysis. 
+
 
 *The Data:*
 
-We used Twitter’s user_timeline API in which we pulled the 3000 most recent tweets from a specific account. We then ran through each senator of the past two Congresses and removed the duplicates, in total creating a database of 338,015 tweets. 
+We used Twitter’s [User Timeline function](https://developer.twitter.com/en/docs/twitter-api/tweets/timelines/introduction) in which we pulled the 3000 most recent tweets from a specific account. We then ran through each senator of the past two Congresses and removed the duplicates, in total creating a database of 338,015 tweets. 
 
 After wrangling, each entry had 11 variables:
 
@@ -121,7 +122,7 @@ After wrangling, each entry had 11 variables:
 
 *Sentiment Analysis:*
 
-In order to conduct sentiment analysis we filtered through the tweets to include only tweets containing keywords regarding COVID-19, tokenizing the tweets into single words, and then applying the nrc sentiment database to each word.
+In order to conduct sentiment analysis we filtered through the tweets to include only tweets containing keywords regarding COVID, tokenizing the tweets into single words, and then applying the nrc sentiment database to each word.
 
 # Mental Health
 
@@ -129,7 +130,7 @@ In order to conduct sentiment analysis we filtered through the tweets to include
 
 Mental health plays a vital role in all of our lives. According to [CDC](https://www.cdc.gov/mentalhealth/learn/index.htm), “mental health includes our emotional, psychological, and social well-being. It affects how we think, feel, and act.” It can either increase your quality of life or ruin it. Something this important and serious is oftentimes overlooked by society. According to the [American Psychiatric Association](https://www.psychiatry.org/patients-families/stigma-and-discrimination), the majority of people suffering from mental illness do not receive help for their disorders for various reasons such as concern about being treated differently or fear of losing their jobs and livelihood. This is due to stigma and prejudice against people with mental illness. Because mental health affects everyone, we thought it would be meaningful to explore mental health in the context of the COVID-19 pandemic by analyzing health policies and public sentiments.
 
-## Mental Health Pre-Covid
+## Mental Health Pre-COVID
 
 To look at an aspect of mental health before the COVID-19 pandemic, we looked into the distribution of adults who experienced symptoms of generalized anxiety disorder, which is characterized by excessive worry that is difficult to control accompanied by physical symptoms like fatigue, restlessness, irritability, or sleep disturbance. 
 
@@ -145,7 +146,7 @@ precovid_barchart <- ggplot(precovid_anxiety,
   geom_text(aes(label = Percentage), vjust=0) +
   scale_fill_brewer(palette = "Set1") +
   labs(title = "The Percentage of People Who Experienced Symptoms of Anxiety",
-       subtitle = "In 2019 (Pre-Covid)",
+       subtitle = "In 2019 (Pre-COVID)",
        x = "Experienced Symptoms",
        y = "Percentage")
 
@@ -163,7 +164,7 @@ covid_barchart <- ggplot(covid_anxiety,
   geom_text(aes(label = Percentage), vjust=0) +
   scale_fill_brewer(palette = "Set1") +
   labs(title = "The Percentage of People Who Experienced Symptoms of Anxiety",
-       subtitle = "During Covid-19",
+       subtitle = "During COVID-19",
        x = "Experienced Symptoms",
        y = "Percentage")
 covid_barchart
@@ -171,7 +172,7 @@ covid_barchart
 
 During 2019, about 15.6% of adults experienced symptoms of anxiety. This percentage is lower than the percent of adults who experienced symptoms of anxiety during the time period of COVID-19 (April 23, 2020 - October 11, 2021), which we found to be 18%. The increase in adults experiencing symptoms of anxiety highlights how detrimental COVID-19 was for people’s mental wellbeing. 
 
-## Mental Health During Covid-19
+## Mental Health During COVID-19
 
 The pandemic of COVID-19 brought upon many drastic changes not only to how we perceive health but to our daily lives. During the pandemic of COVID-19, people were subjected to social isolation and experienced various hardships, so we thought it would be beneficial to analyze the trend of mental health and see how it has been affected in different contexts. 
 
@@ -202,7 +203,7 @@ anxiety_graph <- ggplot(data = mental_health,
             plot.caption.position = "plot",
             plot.caption = element_text(hjust = 0)) +
   labs(title = "The Percentage of People Who Experienced Symptoms of Anxiety",
-       subtitle = "During Covid (Weeks 1- 39)",
+       subtitle = "During COVID (Weeks 1- 39)",
        x = "Week",
        y = "Percentage",
        caption = "Percentage = number of people with anxiety over number of people who took the survey")
@@ -243,7 +244,7 @@ A residuals vs. fitted plot is an easy way to detect unequal error variances, ou
 Looking into the three weeks of outliers we wanted to see if it was a national trend where the states somewhat uniformly worsened (and improved for week 3) mentally or if a region in the country influenced the average with their own anomaly. The three graphs above show the state distribution of anxiety. The biggest difference lies in the Southeast region as it severely worsened from the initial weeks into week 18. Week 3 shows more of a national improvement with no clear outliers compared to the two other graphs that showed peak numbers. While there was also a big variance between the three weeks among the Midwestern states, the population of those states are not big enough to skew the national trend. 
 To find out the reasons for these anomalies it is important to examine how these trends line up with the development of COVID-19 in our country.
 
-# Covid-19
+# COVID-19
 
 Given increasing trends of anxiety and depression, we questioned if this is due to COVID-19 getting worse. In order to visualize this trend we created a line graph plotting the number of new COVID-19 cases per week in the graph below.
 
@@ -298,8 +299,8 @@ covid_rate <- ggplot(data = diff_data,
             legend.title = element_text(size=10),
             legend.key.size = unit(1, 'cm')) +
 
-      labs(title = "The Rate of Change in Covid Cases",
-           subtitle = "During the Covid-19 Period",
+      labs(title = "The Rate of Change in COVID Cases",
+           subtitle = "During the COVID-19 Period",
            y = "Percentage Difference Between Weeks",
            x = "Week")
 
@@ -311,7 +312,7 @@ covid_rate +
   annotate("text", x = 31.5, y = 0.15, label = "[29-34]", colour = "red")
 ```
 
-If we look at the change in percentage of covid cases across the weeks, we can see 2 major peaks and 1 valley that stands out from the general trend. The two spikes in the rate of change in COVID-19 occur from weeks 12-14 and 18-25 respectively. The valley occurs from weeks 29-34. Furthermore, we decided to use the time periods weeks 3-12, 14-17, and 35-39 as a control because the rate of change in Covid-19 cases did not change much during that time period. Using the control spatial data, we will indicate certain states that influenced the rate of change of new COVID-19 cases and compare the mental health of that time period.
+If we look at the change in percentage of COVID cases across the weeks, we can see 2 major peaks and 1 valley that stands out from the general trend. The two spikes in the rate of change in COVID-19 occur from weeks 12-14 and 18-25 respectively. The valley occurs from weeks 29-34. Furthermore, we decided to use the time periods weeks 3-12, 14-17, and 35-39 as a control because the rate of change in COVID-19 cases did not change much during that time period. Using the control spatial data, we will indicate certain states that influenced the rate of change of new COVID-19 cases and compare the mental health of that time period.
 
 ![Percentage = average of number of people with anxiety/COVID-19 over number of people who took the survey/found positive during this time period](img/final-control.jpg){width=100%}
 
@@ -328,6 +329,7 @@ For the weeks 12-14, southern states like Texas, Louisiana, and Maryland and nor
 word_cloud <- read_csv2("blog-project/data/textual/senator_wordcloud.csv")
 sentiments <- read_csv2("blog-project/data/textual/twitter_sentiments.csv")
 tweets <- read_csv2("blog-project/data/textual/senator_tweets_covid.csv")
+
 temp_s2 <- sentiments %>%
   filter(!week == 0,
          sentiments == c("anger","fear","joy","positive","negative","sadness","trust")) %>%
@@ -370,11 +372,7 @@ tweets <- read_csv2("blog-project/data/textual/senator_tweets_covid.csv")
 temp <- read_csv2("blog-project/data/textual/temp.csv")
 
 
-word_trend <-  temp %>% 
-  filter(week != 0) %>%
-  group_by(tokens, week) %>%
-  summarise(sum = n()) %>%
-  arrange(week) 
+word_trend <- read_csv2("blog-project/data/textual/word_trend.csv")
 
 word_trend %>%
   filter(tokens %in% c("law","act","bill")) %>%
@@ -408,9 +406,8 @@ These two graphs clearly show an opposing trend in what is important to the gove
 ## Sentiments
 
 ```{r sentiment-total, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 6, fig.align = 'center'}
-temp_sent <- sentiments %>%
-  group_by(sentiments) %>%
-  summarize(sum = sum(count))
+temp_sent <- read_csv2("blog-project/data/textual/sent_bar.csv")
+
 
 temp_sent %>%
   ggplot(aes(x = reorder(sentiments,sum), y = sum)) +
@@ -426,14 +423,10 @@ temp_sent %>%
 Looking at this it seems as though the majority of the vocabulary used by senators are positive and encouraging, however like the first graph showed it is the inconsistency in a unified positive message that caused uncertainty in both how we should react to the pandemic and how the government will fight the spread of the virus.
 
 ```{r sentiment-trend, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 6.5, fig.align = 'center'}
-temp_sent <- sentiments %>%
-  group_by(sentiments, week) %>%
-  summarize(prc = mean(percentage)) %>%
-  filter(week != 0)
+temp_sent <- read_csv2("blog-project/data/textual/sent_final.csv")
 
 
 temp_sent %>%
-  filter(sentiments %in% c("anger","fear","positive","trust")) %>%
 ggplot(aes(x = week, y = prc)) +
   geom_line(aes(color = sentiments)) +
   scale_color_brewer(palette = "Set1") +
@@ -446,7 +439,19 @@ ggplot(aes(x = week, y = prc)) +
        caption = "*Percentage is number of each sentiment over total words for that week")
 ```
 
-![](img/top-words.png){width=100%}
+```{r top-words, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 6.5, fig.align = 'center'}
+top_words <- read_csv2("blog-project/data/textual/top_words.csv")
+
+ggplot(top_words, aes(x = reorder(tokens,count), y = count)) +
+  geom_col(aes(fill = tokens)) +  
+  scale_color_brewer(palette = "Set1") +
+  coord_flip() +
+  facet_wrap(~sentiment, nrow = 2, scales = "free") +
+  theme(legend.position = "none") +
+  labs(title = "Most Common Angry Words By Senators",
+       x = "Word",
+       y = "Count")
+```
 
 Here you can see the change in each sentiment over the weeks. While there isn’t any significance in the distribution of each sentiment, the slight changes showed decreases in positive and trustworthy sentiments while an increase in angry and fearful sentiments. These changes reflect the trend of COVID-19, an ever increasing number of new cases with no end in sight. In a time that required the most out of our government to unify and drive our country forward, they instead got entangled in partisan politics that provided little help in our fight against the pandemic and for our mental health.
 

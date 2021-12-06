@@ -35,8 +35,8 @@ temp <- tweets %>%
   anti_join(stop_words, by = c("tokens" = "word")) %>%
   select(state, week, tokens)
 
-setwd("./..")
-write_csv2(temp, "data/textual/temp.csv")
+#setwd("./..")
+#write_csv2(temp, "data/textual/temp.csv")
 
 #Z2 Week 2 
 set.seed(50)
@@ -48,7 +48,6 @@ temp_wc <- temp %>%
   arrange(desc(n))
 pal <- brewer.pal(9, "Set1")
 pal <- pal[-(1:2)]
-par(mfrow=c(1,2))
 wordcloud(words = temp_wc$tokens, 
           freq = temp_wc$n,
           rot.per = .15,
@@ -172,6 +171,9 @@ word_trend <-  temp %>%
   summarise(sum = n()) %>%
   arrange(week) 
 
+setwd("./..")
+write_csv2(word_trend, "data/textual/word_trend.csv")
+
 word_trend %>%
   filter(tokens %in% c("law","act","bill")) %>%
   group_by(week) %>%
@@ -214,6 +216,9 @@ temp_sent <- sentiments %>%
   group_by(sentiments) %>%
   summarize(sum = sum(count))
 
+setwd("./..")
+write_csv2(temp_sent, "data/textual/sent_bar.csv")
+
 temp_sent %>%
   ggplot(aes(x = reorder(sentiments,sum), y = sum)) +
   geom_col(aes(fill = sentiments)) +
@@ -227,11 +232,13 @@ temp_sent %>%
 temp_sent <- sentiments %>%
   group_by(sentiments, week) %>%
   summarize(prc = mean(percentage)) %>%
-  filter(week != 0)
+  filter(week != 0) %>%
+  filter(sentiments %in% c("anger","fear","positive","trust"))
 
+setwd("./..")
+write_csv2(temp_sent, "data/textual/sent_final.csv")
 
 temp_sent %>%
-  filter(sentiments %in% c("anger","fear","positive","trust")) %>%
 ggplot(aes(x = week, y = prc)) +
   geom_line(aes(color = sentiments)) +
   scale_color_brewer(palette = "Set1") +
@@ -265,6 +272,22 @@ temp_t <- temp_word_bar %>%
   filter(sentiment == "trust") %>%
   arrange(desc(count)) %>%
   head(n = 7)
+
+top_words <- rbind(temp_a,temp_f,temp_p,temp_t)
+
+setwd("./..")
+write_csv2(top_words, "data/textual/top_words.csv")
+
+
+ggplot(temp_final, aes(x = reorder(tokens,count), y = count)) +
+  geom_col(aes(fill = tokens)) +  
+  scale_color_brewer(palette = "Set1") +
+  coord_flip() +
+  facet_wrap(~sentiment, nrow = 2, scales = "free") +
+  theme(legend.position = "none") +
+  labs(title = "Most Common Angry Words By Senators",
+       x = "Word",
+       y = "Count")
 
 
 ggplot(temp_a, aes(x = reorder(tokens,count), y = count)) +
@@ -306,5 +329,10 @@ ggplot(temp_t, aes(x = reorder(tokens,count), y = count)) +
 
 
 ```
+
+```{r}
+#additional wrangling
+```
+
 
 
