@@ -12,7 +12,7 @@ library(RColorBrewer)
 
 
 # import data
-senator_tweets <- read.csv2("wordcloud_data.csv")
+senator_tweets <- read.csv2("../data/textual/wordcloud_data.csv")
 
 pal <- brewer.pal(9, "Set1")
 pal <- pal[-(1:2)]
