@@ -178,7 +178,7 @@ The pandemic of COVID-19 brought upon many drastic changes not only to how we pe
 
 ```{r anxiety-graph, echo=FALSE, message=FALSE}
 # import data
-mental_health <- read_csv("blog-project/data/mental-health/mental_health.csv") %>%
+mental_health <- read_csv("data/mental-health/mental_health.csv") %>%
   filter(State == "National")
 
 # plot anxiety graph with ggplot
@@ -249,7 +249,7 @@ To find out the reasons for these anomalies it is important to examine how these
 Given increasing trends of anxiety and depression, we questioned if this is due to COVID-19 getting worse. In order to visualize this trend we created a line graph plotting the number of new COVID-19 cases per week in the graph below.
 
 ```{r covid-cases-graph, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 6, fig.align = 'center'}
-timeline_graph <- read_csv("blog-project/shiny/timeline_graph.csv") %>%
+timeline_graph <- read_csv("data/mental-health/timeline_graph.csv") %>%
   filter(response == "Covid Cases", state == "National")
 
 ggplot(data = timeline_graph,
@@ -280,7 +280,7 @@ ggplot(data = timeline_graph,
 We can see in the above graph that the cases due to COVID-19 increased in general as we progress along weeks 1 to 39. If we look closely, we can see that the number of new cases per week actually increases. This means that COVID-19 is technically getting worse. We can see this by the positive slope of the graph of the number of cases per week vs. week as shown below. To quantify the change we tried to construct a difference graph. The correlation coefficient for this visualization turned out to be greater than 0.33, and hence we can statistically rely on it for conclusions.
 
 ```{r covid-rate-graph, echo=FALSE, message=FALSE}
-diff_data <- read_csv("blog-project/data/covid/diff_graph_data.csv")
+diff_data <- read_csv("data/covid/diff_graph_data.csv")
 
 covid_rate <- ggplot(data = diff_data,
            mapping = aes(x = week,
@@ -326,17 +326,12 @@ For the weeks 12-14, southern states like Texas, Louisiana, and Maryland and nor
 # Government Responses
 
 ```{r sentiment-distribution, echo=FALSE, message=FALSE}
-word_cloud <- read_csv2("blog-project/data/textual/senator_wordcloud.csv")
-sentiments <- read_csv2("blog-project/data/textual/twitter_sentiments.csv")
-tweets <- read_csv2("blog-project/data/textual/senator_tweets_covid.csv")
+prc_of_total_sentiment_data <- read_csv2("data/textual/prc_of_total_sentiment_data.csv")
 
-temp_s2 <- sentiments %>%
-  filter(!week == 0,
-         sentiments == c("anger","fear","joy","positive","negative","sadness","trust")) %>%
-  group_by(week, sentiments) %>%
-  summarise(count = sum(count), prc = mean(percentage_of_total_sentiment))
-ggplot(temp_s2, aes(x = week, y = prc)) +
-  geom_line(aes(color = sentiments)) +
+#plot the proportion of sentiment by week graph
+ggplot(prc_of_total_sentiment_data, aes(x = week, y = prc)) + #set ggplot aesthetics
+  #draw the line for each sentiment
+  geom_line(aes(color = sentiments), size = rel(1.1)) +
   scale_color_brewer(palette = "Paired") +
   labs(title = "Proportion of Sentiments by Week",
        color = "Sentiments",
@@ -366,18 +361,14 @@ Looking at the most common words in tweets regarding COVID-19, there are some ob
 It is interesting to note that “care” was the most common word among the entirety of our range of dates. However, when comparing with the overall data the conversation regarding the law wasn’t nearly as prevalent in the initial weeks. While there aren’t any strong correlations between the peaks and troughs of mental health, exploring this opened up interesting questions regarding trends of what US senators deemed important to tweet about. The first two weeks had words like “communities”, “workers”, and “public” lead the way while the overall and week 18 chart shows a much more political selection of words. To explore these trends we decided to look at the trend of these specific words. 
 
 ```{r word-trends, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 5.5, fig.align = 'center'}
-word_cloud <- read_csv2("blog-project/data/textual/senator_wordcloud.csv")
-sentiments <- read_csv2("blog-project/data/textual/twitter_sentiments.csv")
-tweets <- read_csv2("blog-project/data/textual/senator_tweets_covid.csv")
-temp <- read_csv2("blog-project/data/textual/temp.csv")
-
-
-word_trend <- read_csv2("blog-project/data/textual/word_trend.csv")
+word_trend <- read_csv2("data/textual/word_trend.csv")
 
 word_trend %>%
+  #filter out the specific words relating to politics
   filter(tokens %in% c("law","act","bill")) %>%
   group_by(week) %>%
   summarise(sum = sum(sum)) %>%
+  #plot the change in word amount
   ggplot(aes(x = week, y = sum)) +
   geom_point() +
   geom_smooth(method = "lm", alpha = .15) +
@@ -387,10 +378,12 @@ word_trend %>%
        y = "Count",
        caption = "r = 0.33")
 
-word_trend %>%
+word_trend %>%  
+  #filter out the specific words relating to economy
   filter(tokens %in% c("workers","jobs","economy")) %>%
   group_by(week) %>%
   summarise(sum = sum(sum)) %>%
+  #plot the change in word amount
   ggplot(aes(x = week, y = sum)) +
   geom_point() +
   geom_smooth(method = "lm", alpha = .15) +
@@ -406,11 +399,12 @@ These two graphs clearly show an opposing trend in what is important to the gove
 ## Sentiments
 
 ```{r sentiment-total, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 6, fig.align = 'center'}
-temp_sent <- read_csv2("blog-project/data/textual/sent_bar.csv")
+sentiment_bar <- read_csv2("data/textual/sent_bar.csv")
 
-
-temp_sent %>%
+sentiment_bar %>%
+  #reorder the x axis and set axis
   ggplot(aes(x = reorder(sentiments,sum), y = sum)) +
+  #create bar graphs
   geom_col(aes(fill = sentiments)) +
   scale_color_brewer(palette = "Set1") +
   coord_flip() +
@@ -423,13 +417,14 @@ temp_sent %>%
 Looking at this it seems as though the majority of the vocabulary used by senators are positive and encouraging, however like the first graph showed it is the inconsistency in a unified positive message that caused uncertainty in both how we should react to the pandemic and how the government will fight the spread of the virus.
 
 ```{r sentiment-trend, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 6.5, fig.align = 'center'}
-temp_sent <- read_csv2("blog-project/data/textual/sent_final.csv")
+sentiment_change <- read_csv2("data/textual/sent_final.csv")
 
-
-temp_sent %>%
+sentiment_change %>%
 ggplot(aes(x = week, y = prc)) +
+  #draw the change in
   geom_line(aes(color = sentiments)) +
   scale_color_brewer(palette = "Set1") +
+  #draw the average
   geom_smooth(aes(color = sentiments)) +
   scale_color_brewer(palette = "Set1") +
   labs(title = "Change in Sentiments Over Time",
@@ -440,12 +435,14 @@ ggplot(aes(x = week, y = prc)) +
 ```
 
 ```{r top-words, echo=FALSE, message=FALSE, fig.height = 4, fig.width = 6.5, fig.align = 'center'}
-top_words <- read_csv2("blog-project/data/textual/top_words.csv")
+top_words <- read_csv2("data/textual/top_words.csv")
 
 ggplot(top_words, aes(x = reorder(tokens,count), y = count)) +
+  #draw the bars
   geom_col(aes(fill = tokens)) +  
   scale_color_brewer(palette = "Set1") +
   coord_flip() +
+  #facet into the separate sentiments
   facet_wrap(~sentiment, nrow = 2, scales = "free") +
   theme(legend.position = "none") +
   labs(title = "Most Common Angry Words By Senators",
