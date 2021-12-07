@@ -1,0 +1,142 @@
+---
+title: "Mental Health Graphs"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(csv)
+library(ggplot2)
+require(mosaic)
+library(mdsr)
+```
+
+
+```{r}
+# create dataset from CDC
+precovid_anxiety <- data.frame(Symptoms = c("No", "Yes"),
+                                Percentage = c(84.4, 15.6))
+
+#write_csv(precovid_anxiety, "precovid_anxiety.csv", append = FALSE)
+
+# create dataset with calculated mean percentage
+covid_anxiety <- data.frame(Symptoms = c("No", "Yes"),
+                            Percentage = c(82, 18))
+
+#write_csv(covid_anxiety, "covid_anxiety.csv", append = FALSE)
+```
+
+
+```{r precovid-graph}
+# import data
+precovid_anxiety <- read_csv("../data/mental-health/precovid_anxiety.csv")
+covid_anxiety <- read_csv("../data/mental-health/covid_anxiety.csv")
+
+# create pre-covid_anxiety bar chart
+precovid_barchart <- ggplot(precovid_anxiety,
+                            aes(x = Symptoms, y = Percentage, fill = Symptoms)) + 
+  geom_col() + 
+  geom_text(aes(label = Percentage), vjust=0) +
+  scale_fill_brewer(palette = "Set1") +
+  labs(title = "The Percentage of People Who Experienced Symptoms of Anxiety",
+       subtitle = "In 2019 (Pre-COVID)",
+       x = "Experienced Symptoms",
+       y = "Percentage")
+
+precovid_barchart
+
+
+# create covid_anxiety bar chart
+covid_barchart <- ggplot(covid_anxiety,
+                         aes(x = Symptoms, y = Percentage, fill = Symptoms)) +
+  geom_col() +
+  geom_text(aes(label = Percentage), vjust=0) +
+  scale_fill_brewer(palette = "Set1") +
+  labs(title = "The Percentage of People Who Experienced Symptoms of Anxiety",
+       subtitle = "During COVID-19",
+       x = "Experienced Symptoms",
+       y = "Percentage")
+covid_barchart
+
+```
+
+> How was mental health pre-covid?
+* During 2019, 9.5% of adults experienced mild, 3.4% experienced moderate, and 2.7% experienced severe symptoms of anxiety 
+* 84.4% of adults aged 18 and over experienced no or minimal symptoms of anxiety 
+
+
+```{r covid-graph, ggplot}
+# import data
+mental_health <- read_csv("../data/mental-health/mental_health.csv") %>%
+  filter(State == "National")
+
+# plot anxiety graph with ggplot
+anxiety_graph <- ggplot(data = mental_health,
+           mapping = aes(x = WEEK,
+                         y = anxiety_percentage)) +
+      geom_line(aes(x = WEEK,
+                    y = anxiety_percentage),
+                color = "magenta") +
+      geom_point(aes(x = WEEK,
+                     y = anxiety_percentage),
+                 color = "magenta") + 
+  geom_smooth(method='lm', formula = y~x) + 
+  geom_hline(yintercept = 32.6, linetype = "dashed") +
+  labs(title = "The Percentage of People Who Experienced Symptoms of Anxiety",
+       subtitle = "During Covid (Weeks 1- 39)",
+       x = "Week",
+       y = "Percentage")
+
+df1 <- data.frame(x1 = 5, x2 = 2.3, y1 = 30, y2 = 32.5)
+df2 <- data.frame(x1 = 21.5, x2 = 18, y1 = 25.5, y2 = 23.7)
+
+anxiety_graph + 
+  annotate("text", x = 5.3, y = 29.2, label = "Week 2", colour = "red") + 
+  geom_curve(
+    aes(x = x1, y = y1, xend = x2, yend = y2),
+    inherit.aes = FALSE,
+    data = df1,
+    arrow = arrow(length = unit(0.03, "npc"))) + 
+  annotate("text", x = 9.4, y = 10.3, label = "Week 3", colour = "red") +
+  geom_segment(aes(x = 7.3, y = 10.2, xend = 3.5, yend = 10.2),
+               arrow = arrow(length = unit(0.3, "cm"))) + 
+  annotate("text", x = 24, y = 25.5, label = "Week 18", colour = "red") + 
+  geom_curve(
+    aes(x = x1, y = y1, xend = x2, yend = y2),
+    inherit.aes = FALSE,
+    data = df2,
+    arrow = arrow(length = unit(0.03, "npc")))
+
+# using mosaic to find statistics and conditions
+cor(mental_health$anxiety_percentage, mental_health$WEEK)
+mean(mental_health$anxiety_percentage)
+
+gm1 <- lm(anxiety_percentage ~ WEEK, data = mental_health)
+
+msummary(gm1)
+
+mplot(gm1, which = 1)
+mplot(gm1, which = 2)
+```
+> How has mental looked during Covid-19? 
+* The general trend of percentage of people who experienced symptoms of anxiety during the 39 weeks of covid is generally positive 
+* The average percent of people who experienced symptoms of anxiety during Covid is 18%
+* The correlation coefficient (r) between anxiety percentage and week on the national level is 0.44
+* There is a weak, positive association between week and anxiety iwith a coefficient of determination (R^2) of 19.6% 
+* This linear model has a residual standard error of 3.765
+* Residual standard error is the standard deviation of the residuals, so smaller residual standard errors means predictions are better
+* In this case, the number is high so this means the predictions are not good
+* There seems to be a huge deviation from the line of best fit in the early weeks of Covid (2 & 3)
+* An easy way to detect unequal error variances, outliers, and non-linearity is through a residuals vs. fitted plot
+* As you can see in the residuals vs. fitted plot, weeks 2, 3, and 18 stand out while the rest of the points are randomly scattered above and below the 0 line
+* This suggests that the relationship may not be linear, which is also shown in the normal Q-Q plot where the line deviates from the fitted line toward the right
+
+> What does this mean?
+* This shows that mental health varied widely and was worse in the early weeks of Covid
+* Towards the later weeks, there did not seem to be any outliers in terms of variance
+* On average, mental health increased slightly
+
+
