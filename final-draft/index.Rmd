@@ -280,8 +280,11 @@ ggplot(data = timeline_graph,
 We can see in the above graph that the cases due to COVID-19 increased in general as we progress along weeks 1 to 39. If we look closely, we can see that the number of new cases per week actually increases. This means that COVID-19 is technically getting worse. We can see this by the positive slope of the graph of the number of cases per week vs. week as shown below. To quantify the change we tried to construct a difference graph. The correlation coefficient for this visualization turned out to be greater than 0.33, and hence we can statistically rely on it for conclusions.
 
 ```{r covid-rate-graph, echo=FALSE, message=FALSE}
-diff_data <- read_csv("data/covid/diff_graph_data.csv")
-
+timeline_graph_up <- read_csv("data/mental-health/timeline_graph.csv") 
+diff_data <- timeline_graph_up %>%
+  filter(response == "Covid Cases", state == "National") %>%
+  mutate(diff = percentage - lag(percentage), 
+         diff = ifelse(is.na(diff), percentage, diff))
 covid_rate <- ggplot(data = diff_data,
            mapping = aes(x = week,
                          y = diff)) +
@@ -305,7 +308,7 @@ covid_rate <- ggplot(data = diff_data,
            x = "Week")
 
 covid_rate + 
-  annotate("text", x = 7, y = 0.23, label = "[2-14]", colour = "red") + 
+  annotate("text", x = 7, y = 0.23, label = "[12-14]", colour = "red") + 
   geom_segment(aes(x = 8.8, y = 0.23, xend = 13, yend = 0.23),
                arrow = arrow(length = unit(0.3, "cm"))) + 
   annotate("text", x = 21.5, y = 0.01, label = "[18-25]", colour = "red") +
