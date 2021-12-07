@@ -35,8 +35,8 @@ temp <- tweets %>%
   anti_join(stop_words, by = c("tokens" = "word")) %>%
   select(state, week, tokens)
 
-#setwd("./..")
-#write_csv2(temp, "data/textual/temp.csv")
+setwd("./..")
+write_csv2(temp, "data/textual/senator_words.csv")
 
 #Z2 Week 2 
 set.seed(50)
