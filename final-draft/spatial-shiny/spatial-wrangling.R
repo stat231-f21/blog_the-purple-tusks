@@ -138,3 +138,8 @@ covid_us_final <- us_joined_bar %>%
   )
 
 #write.csv(covid_us_final, "covid_updated.csv")
+mental_health <- read_csv("../data/mental-health/mental_health.csv")
+mental_health_spatial <- mental_health %>%
+  rename(week = WEEK, state = State)
+
+mental_health_spatial$state <- tolower(mental_health_spatial$state)

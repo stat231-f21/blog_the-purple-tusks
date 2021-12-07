@@ -9,7 +9,14 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(ggplot2)
+```
 
+```{r}
+mental_health <- read_csv("../data/mental-health/mental_health.csv")
+mental_health_spatial <- mental_health %>%
+  rename(week = WEEK, state = State)
+
+mental_health_spatial$state <- tolower(mental_health_spatial$state)
 ```
 
 Using the code from the shiny app spatial part to capture specific ggplots of periods we are interested in. 
@@ -43,6 +50,7 @@ plot_usmap(data = covdata, values = "percentage_cases_bar") +
 
 
 # anxiety
+
 
 mendata <- mental_health_spatial %>%
             filter(week %in% c(3:12,14:17,35:39))%>%
