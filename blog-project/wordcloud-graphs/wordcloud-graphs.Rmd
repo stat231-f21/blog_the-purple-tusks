@@ -20,11 +20,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-setwd("./..")
-
-word_cloud <- read_csv2("data/textual/senator_wordcloud.csv")
-sentiments <- read_csv2("data/textual/twitter_sentiments.csv")
-tweets <- read_csv2("data/textual/senator_tweets_covid.csv")
+word_cloud <- read_csv2("../data/textual/senator_wordcloud.csv")
+sentiments <- read_csv2("../data/textual/twitter_sentiments.csv")
+tweets <- read_csv2("../data/textual/senator_tweets_covid.csv")
 ```
 
 Considering the outliers we can look at the general response from US senators. 
@@ -35,8 +33,7 @@ temp <- tweets %>%
   anti_join(stop_words, by = c("tokens" = "word")) %>%
   select(state, week, tokens)
 
-setwd("./..")
-write_csv2(temp, "data/textual/senator_words.csv")
+write_csv2(temp, "../data/textual/senator_words.csv")
 
 #Z2 Week 2 
 set.seed(50)
@@ -172,7 +169,7 @@ word_trend <-  temp %>%
   arrange(week) 
 
 setwd("./..")
-write_csv2(word_trend, "data/textual/word_trend.csv")
+write_csv2(word_trend, "../data/textual/word_trend.csv")
 
 word_trend %>%
   filter(tokens %in% c("law","act","bill")) %>%
@@ -217,7 +214,7 @@ temp_sent <- sentiments %>%
   summarize(sum = sum(count))
 
 setwd("./..")
-write_csv2(temp_sent, "data/textual/sent_bar.csv")
+write_csv2(temp_sent, "../data/textual/sent_bar.csv")
 
 temp_sent %>%
   ggplot(aes(x = reorder(sentiments,sum), y = sum)) +
@@ -236,7 +233,7 @@ temp_sent <- sentiments %>%
   filter(sentiments %in% c("anger","fear","positive","trust"))
 
 setwd("./..")
-write_csv2(temp_sent, "data/textual/sent_final.csv")
+write_csv2(temp_sent, "../data/textual/sent_final.csv")
 
 temp_sent %>%
 ggplot(aes(x = week, y = prc)) +
@@ -276,7 +273,7 @@ temp_t <- temp_word_bar %>%
 top_words <- rbind(temp_a,temp_f,temp_p,temp_t)
 
 setwd("./..")
-write_csv2(top_words, "data/textual/top_words.csv")
+write_csv2(top_words, "../data/textual/top_words.csv")
 
 
 ggplot(temp_final, aes(x = reorder(tokens,count), y = count)) +
