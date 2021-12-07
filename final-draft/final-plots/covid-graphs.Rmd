@@ -1,5 +1,5 @@
 ---
-title: "dhyey"
+title: "covid-graphs"
 author: "dm"
 date: "11/11/2021"
 output: html_document
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The given increasing trends of anxiety and depression, we questioned if this is due to COVID-19 getting worse. But, wait! We can see that the cases and deaths due to COVID-19 increased in general as we progress along the weeks 1 to 39. If we look closely, then we can see that the number of new cases/deaths per week actually decreases. This means that the COVID-19 is technically not getting worse! We can see this by the decreasing slope of the graph of total cases v/s weeks OR by the graph of decreasing number of cases/deaths per week v/s week as shown below. 
 ```{r}
-timeline_graph <- read_csv("timeline_graph.csv") %>%
+timeline_graph <- read_csv("../data/timeline_graph.csv") %>%
   filter(response == "Covid Cases", state == "National")
 
 ggplot(data = timeline_graph,
@@ -38,4 +38,45 @@ ggplot(data = timeline_graph,
            subtitle = "During COVID-19 (Weeks 1-39)",
            y = "Percentage of Cases",
            x = "Week", caption = "Percentage = number of new cases in the nation for that week over number of new cases in the nation over all weeks")
+```
+
+# COVID diff graph
+```{r}
+library(dplyr)
+library(tidyverse)
+
+timeline_graph_up <- read_csv("../data/timeline_graph.csv") 
+timeline_graph_up <- timeline_graph_up %>%
+  filter(response == "Covid Cases", state == "National") %>%
+  mutate(diff = diff(percentage))
+
+#%>%
+#  mutate(diff = c(0.0502819,-0.02102229,0.003524543,0.00346709,0.003278399,0.00338682,0.003405226,0.004120342,0.005832997,0.007556452,0.00889334,0.01023633,0.1948606,0.02660811,0.0270676,0.03067617,0.03842486,0.05539291,0.09359305,0.1149099,0.1406222,0.2908593,0.12467,0.08348704,0.05102942,0.04244973,0.03846894,0.08787491,0.0341228,0.02320477,0.01348673,0.008044775,0.008935341,0.05086234,0.07038062,0.09734421,0.1046851,0.09571224,0.07334682))
+
+#write.csv(timeline_graph_up, "diff_graph_data.csv")
+
+ggplot(data = timeline_graph_up,
+           mapping = aes(x = week,
+                         y = diff)) +
+      geom_line(aes(x = week,
+                    y = diff)) +
+      geom_point(aes(x = week,
+                     y = diff)) +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+  
+      theme(plot.title = element_text(size=15), 
+            plot.subtitle = element_text(size=10),
+            axis.text = element_text(size=10),
+            axis.title = element_text(size=10),
+            legend.text = element_text(size=10),
+            legend.title = element_text(size=10),
+            legend.key.size = unit(1, 'cm')) +
+            #scale_y_continuous(trans='log10') +
+
+      #scale_colour_manual(values = c("Covid Cases" = "slateblue1")) +
+      labs(title = "The Change in Covid Cases/Deaths",
+           subtitle = "During the Covid-19 Period",
+           y = "Percentage of change in Covid-19 cases",
+           x = "Week")
+cor(y = timeline_graph_up$diff,x = timeline_graph_up$week)
 ```
