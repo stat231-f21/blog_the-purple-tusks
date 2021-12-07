@@ -17,13 +17,15 @@ mental_health_spatial <- mental_health %>%
   rename(week = WEEK, state = State)
 
 mental_health_spatial$state <- tolower(mental_health_spatial$state)
+
+covid_19_spatial <- read_csv("../data/covid/covid_19_spatial.csv")
 ```
 
 Using the code from the shiny app spatial part to capture specific ggplots of periods we are interested in. 
 ```{r, fig.cap = "Fig. # - Control"}
 # Cases
 library(usmap)
-covid_19_spatial <- read_csv("covid_19_spatial.csv")
+
 covdata <- covid_19_spatial %>%
             filter(week %in% c(3:12,14:17,35:39))%>%
             select(c("state", 
@@ -76,7 +78,6 @@ plot_usmap(data = mendata, values = "anxiety_percentage") +
 
 ```{r}
 library(usmap)
-covid_19_spatial <- read_csv("covid_19_spatial.csv")
 
 ################# Week 12-14 ######################
 covdata <- covid_19_spatial %>%
@@ -158,7 +159,7 @@ plot_usmap(data = covdata, values = "percentage_cases_bar") +
 library(usmap)
 library(dplyr)
 library(tidyverse)
-mental_health_spatial <- read_csv("mental_health_spatial.csv")
+
 
 ############# Week 29:34 Anxiety ###############
 mendata <- mental_health_spatial %>%
