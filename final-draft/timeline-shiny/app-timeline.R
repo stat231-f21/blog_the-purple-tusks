@@ -85,7 +85,9 @@ ui <- navbarPage(
       mainPanel(plotOutput(outputId = "timeline_mentalhealth"),
                 plotOutput(outputId = "timeline_covid"),
                 plotOutput(outputId = "timeline_sentiment"),
-                "Percentages of Indicators of Covid-19",
+                h3(" "),
+                h3("Percentages of Indicators of Covid-19"),
+                h3(" "),
                 DT::dataTableOutput(outputId = "table"))
     )
   )
