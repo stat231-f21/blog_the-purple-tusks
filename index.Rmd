@@ -318,6 +318,7 @@ If we look at the change in percentage of COVID cases across the weeks, we can s
 
 ![](img/final-case-anxiety-1.jpg){width=100%}
 ![](img/final-case-anxiety-2.jpg){width=100%}
+
 ![Percentage = average of number of people with anxiety/COVID-19 over number of people who took the survey/found positive during this time period](img/final-case-anxiety-3.jpg){width=100%}
 
 
