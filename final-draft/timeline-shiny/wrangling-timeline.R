@@ -1,3 +1,4 @@
+
 # load necessary packages
 library(shiny)
 library(shinythemes)
@@ -14,11 +15,11 @@ library(ggplot2)
 
 ## combine-data
 
-covid_updated <- read_csv("covid_updated.csv")
-mental_health <- read_csv("mental_health.csv")
+covid_updated <- read_csv("../data/covid/covid_updated.csv")
+mental_health <- read_csv("../data/mental-health/mental_health.csv")
 
 covid_updated <- covid_updated %>%
-  subset(select = -c(...1)) %>%
+  select(-"...1") %>%
   rename(percentage_cases_state = percentage_cases_bar, percentage_deaths_state = percentage_deaths_bar)
 
 mental_health <- mental_health %>%
@@ -32,24 +33,25 @@ covid_mental_health_longer <- covid_mental_health %>%
                values_to = "Percentage")
 
 
+
 ## 
 
-twitter_sentiments <- read_csv2("twitter_sentiments.csv")
-twitter_sentiments_national <- read_csv2("ntl_twitter_sentiments.csv")
+twitter_sentiments <- read_csv2("../data/textual/twitter_sentiments.csv")
+twitter_sentiments_national <- read_csv2("../data/textual/ntl_twitter_sentiments.csv")
 
 covid_mental_health_longer_new <- covid_mental_health_longer %>%
-  subset(select = c("state", "week", "Response", "Percentage")) %>%
+  select(state, week, Response, Percentage) %>%
   rename(response = Response, percentage = Percentage)
 
 # out of all the sentiments for the 29 weeks for that state, what percent is that sentiment for that week
 twitter_sentiments <- twitter_sentiments %>%
-  subset(select = c("state", "week", "sentiments", "percentage_of_total_sentiment")) %>%
+  select(state, week, sentiments, percentage_of_total_sentiment) %>%
   rename(response = sentiments, percentage = percentage_of_total_sentiment) %>%
   filter(week != 0)
 
 twitter_sentiments_national <- twitter_sentiments_national %>%
   mutate(percentage = (count/sum)*100) %>%
-  subset(select = c("week", "sentiments", "percentage")) %>%
+  select(week, sentiments, percentage) %>%
   add_column(state = "National") %>%
   filter(week != 0) %>%
   rename(response = sentiments)
@@ -59,6 +61,8 @@ twitter_sentiments_total <- rbind(twitter_sentiments, twitter_sentiments_nationa
 #write_csv(twitter_sentiments_total, "twitter_sentiments_total.csv", append = FALSE)
 
 timeline_data <- rbind(twitter_sentiments_total, covid_mental_health_longer_new)
+
+
 
 
 ## 
@@ -71,7 +75,7 @@ timeline_table <- timeline_data %>%
 
 timeline_table <- timeline_table %>%
   rename(Anxiety = anxiety_percentage, Depression = depression_percentage, Negative = negative, Positive = positive, "Covid Cases" = percentage_cases_state, "Covid Deaths" = percentage_deaths_state) %>%
-  subset(select = -c(anger, anticipation, disgust, fear, joy, sadness, surprise, trust))
+  select(-anger, -anticipation, -disgust, -fear, -joy, -sadness, -surprise, -trust)
 
 timeline_graph <-timeline_table %>%
   pivot_longer(
@@ -84,22 +88,23 @@ timeline_graph <-timeline_table %>%
 
 
 
+
 ## new-percentages
-twitter_sentiments <- read_csv2("twitter_sentiments.csv")
-twitter_sentiments_national <- read_csv2("ntl_twitter_sentiments.csv")
+twitter_sentiments <- read_csv2("../data/textual/twitter_sentiments.csv")
+twitter_sentiments_national <- read_csv2("../data/textual/ntl_twitter_sentiments.csv")
 
 covid_mental_health_longer_new <- covid_mental_health_longer %>%
-  subset(select = c("state", "week", "Response", "Percentage")) %>%
+  select(state, week, Response, Percentage) %>%
   rename(response = Response, percentage = Percentage)
 
 twitter_sentiments2 <- twitter_sentiments %>%
-  subset(select = c("state", "week", "sentiments", "percentage")) %>%
+  select(state, week, sentiments, percentage) %>%
   rename(response = sentiments) %>%
   filter(week != 0)
 
 twitter_sentiments_national <- twitter_sentiments_national %>%
   mutate(percentage = (count/sum)*100) %>%
-  subset(select = c("week", "sentiments", "percentage")) %>%
+  select(week, sentiments, percentage) %>%
   add_column(state = "National") %>%
   filter(week != 0) %>%
   rename(response = sentiments)
@@ -109,15 +114,15 @@ twitter_sentiments_total2 <- rbind(twitter_sentiments2, twitter_sentiments_natio
 timeline_data2 <- rbind(twitter_sentiments_total2, covid_mental_health_longer_new)
 
 
+
 ## 
 timeline_table2 <- timeline_data2 %>%
   pivot_wider(
     names_from = response,
     values_from = percentage
-  )
-
-timeline_table2 <- timeline_table2 %>%
-  rename(Anxiety = anxiety_percentage, Depression = depression_percentage, "Covid Cases" = percentage_cases_state, "Covid Deaths" = percentage_deaths_state)
+  ) %>%
+  rename(Anxiety = anxiety_percentage, Depression = depression_percentage, "Covid Cases" = percentage_cases_state, "Covid Deaths" = percentage_deaths_state) %>%
+  mutate_if(is.numeric, round, digits = 2)
 
 timeline_graph2 <-timeline_table2 %>%
   pivot_longer(
@@ -129,6 +134,7 @@ timeline_graph2 <-timeline_table2 %>%
 #write_csv(timeline_graph2, "timeline_graph2.csv", append = FALSE)
 
 #write_csv(timeline_table2, "timeline_table2.csv", append = FALSE)
+
 
 
 
