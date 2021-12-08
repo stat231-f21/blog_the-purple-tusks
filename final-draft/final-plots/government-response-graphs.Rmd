@@ -19,7 +19,7 @@ library(gridExtra)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r load-data}
 word_cloud <- read_csv2("../data/textual/senator_wordcloud.csv")
 sentiments <- read_csv2("../data/textual/twitter_sentiments.csv")
 tweets <- read_csv2("../data/textual/senator_tweets_covid.csv")
@@ -27,24 +27,28 @@ tweets <- read_csv2("../data/textual/senator_tweets_covid.csv")
 
 Considering the outliers we can look at the general response from US senators. 
 
-```{r wc-1}
-temp <- tweets %>% 
-  unnest_tokens(input = text, output = tokens) %>% 
-  anti_join(stop_words, by = c("tokens" = "word")) %>%
-  select(state, week, tokens)
+```{r wordclouds}
+senator_words <- read_csv2("../data/textual/senator_words.csv")
 
-write_csv2(temp, "../data/textual/senator_words.csv")
-
-#Z2 Week 2 
+#Wordcloud Week 2 
+#set seed to keep consistent
 set.seed(50)
-temp_wc <- temp %>%
-  filter(week == 2) %>% 
-  anti_join(stop_words, by = c("tokens" = "word")) %>%
+#create dataframe
+wordcloud <- senator_words %>%
+  #choose specific week
+  filter(week == 2) %>%
+  #count each token
   count(tokens) %>%
+  #rid of url tags that are common
   filter(!grepl(paste("https|t.co|amp|rt|health|coronavirus|pandemic|covid|19",sep = "", ignore.case = TRUE), tokens)) %>%
+  #arrange
   arrange(desc(n))
+
+#get color palette set up
 pal <- brewer.pal(9, "Set1")
 pal <- pal[-(1:2)]
+
+#draw wordcloud
 wordcloud(words = temp_wc$tokens, 
           freq = temp_wc$n,
           rot.per = .15,
@@ -52,7 +56,8 @@ wordcloud(words = temp_wc$tokens,
           random.order = T,
           max.words = 150)
 
-temp_wc[1:9,] %>%
+#bar graph of most common words
+wordcloud[1:9,] %>% #choose top 9 words
   ggplot(aes(x = reorder(tokens,n), y = n)) +
   geom_col() +
   scale_fill_brewer(type = "", palette = "Set1") +
@@ -62,24 +67,29 @@ temp_wc[1:9,] %>%
        y = "Count",
        x = "Word")
 #end
-#Z3 Week 3
+#Wordcloud Week 3
 set.seed(50)
-temp_wc <- temp %>%
-  filter(week == 3) %>% 
-  anti_join(stop_words, by = c("tokens" = "word")) %>%
+#create dataframe
+wordcloud <- senator_words %>%
+  #choose specific week
+  filter(week == 3) %>%
+  #count each token
   count(tokens) %>%
+  #rid of url tags that are common
   filter(!grepl(paste("https|t.co|amp|rt|health|coronavirus|pandemic|covid|19",sep = "", ignore.case = TRUE), tokens)) %>%
   arrange(desc(n))
+
 pal <- brewer.pal(9, "Set1")
 pal <- pal[-(1:2)]
-wordcloud(words = temp_wc$tokens, 
-          freq = temp_wc$n,
+
+wordcloud(words = wordcloud$tokens, 
+          freq = wordcloud$n,
           rot.per = .15,
           colors = pal,
           random.order = T,
           max.words = 150)
-
-temp_wc[1:9,] %>%
+#same as before
+wordcloud[1:9,] %>%
   ggplot(aes(x = reorder(tokens,n), y = n)) +
   geom_col() +
   scale_fill_brewer(type = "", palette = "Set1") +
@@ -89,23 +99,27 @@ temp_wc[1:9,] %>%
        y = "Count",
        x = "Word")
 #end
-#Z4 Week 
+
+#Wordcloud Week 18
 set.seed(50)
-temp_wc <- temp %>%
-  filter(week == 18) %>% 
-  anti_join(stop_words, by = c("tokens" = "word")) %>%
+#same as the previous two
+wordcloud <- senator_words %>%
+  filter(week == 18) %>%
   count(tokens) %>%
   filter(!grepl(paste("https|t.co|amp|rt|health|coronavirus|pandemic|covid|19",sep = "", ignore.case = TRUE), tokens)) %>%
   arrange(desc(n))
+
 pal <- brewer.pal(9, "Set1")
 pal <- pal[-(1:2)]
-wordcloud(words = temp_wc$tokens, 
-          freq = temp_wc$n,
+
+wordcloud(words = wordcloud$tokens, 
+          freq = wordcloud$n,
           rot.per = .15,
           colors = pal,
           random.order = T,
           max.words = 150)
-temp_wc[1:9,] %>%
+
+wordcloud[1:9,] %>%
   ggplot(aes(x = reorder(tokens,n), y = n)) +
   geom_col() +
   scale_fill_brewer(type = "", palette = "Set1") +
@@ -117,23 +131,24 @@ temp_wc[1:9,] %>%
 
 #end
 
-#Wordcloud total
+#Wordcloud total weeks
 set.seed(50)
-temp_wc <- temp %>%
-  anti_join(stop_words, by = c("tokens" = "word")) %>%
+wordcloud <- senator_words %>%
   count(tokens) %>%
   filter(!grepl(paste("https|t.co|amp|rt|health|coronavirus|pandemic|covid|19",sep = "", ignore.case = TRUE), tokens)) %>%
   arrange(desc(n))
+
 pal <- brewer.pal(9, "Set1")
 pal <- pal[-(1:2)]
-wordcloud(words = temp_wc$tokens, 
-          freq = temp_wc$n,
+
+wordcloud(words = wordcloud$tokens, 
+          freq = wordcloud$n,
           rot.per = .15,
           colors = pal,
           random.order = T,
           max.words = 150)
 
-temp_wc[1:9,] %>%
+wordcloud[1:9,] %>%
   ggplot(aes(x = reorder(tokens,n), y = n)) +
   geom_col() +
   scale_fill_brewer(type = "", palette = "Set1") +
@@ -143,80 +158,86 @@ temp_wc[1:9,] %>%
        y = "Count",
        x = "Word")
 #end
+```
 
-#Z1 
-temp_s2 <- sentiments %>%
-  filter(!week == 0,
-         sentiments == c("anger","fear","joy","positive","negative","sadness","trust")) %>%
-  group_by(week, sentiments) %>%
-  summarise(count = sum(count), prc = mean(percentage_of_total_sentiment))
-ggplot(temp_s2, aes(x = week, y = prc)) +
-  geom_line(aes(color = sentiments)) +
+```{r sentiment-proportion}
+#load data
+sentiment_proportion <- read_csv2("../data/textual/prc_of_total_sentiment_data.csv")
+
+#draw graph
+ggplot(sentiment_proportion, aes(x = week, y = prc)) +
+  geom_line(aes(color = sentiments),size = rel(1.1)) +
   scale_color_brewer(palette = "Paired") +
   labs(title = "Proportion of Sentiments by Week",
        color = "Sentiments",
        x = "Week",
        y = "Percentage*",
        caption = "*percentage is the number of words that week of each sentiment divided over total words of that sentiment")
-ggsave("z1.png")
 #end
+```
 
-#Trends of specific words
-word_trend <-  temp %>% 
-  filter(week != 0) %>%
-  group_by(tokens, week) %>%
-  summarise(sum = n()) %>%
-  arrange(week) 
-
-setwd("./..")
-write_csv2(word_trend, "../data/textual/word_trend.csv")
+```{r word-trends}
+word_trend <-  read_csv2("../data/textual/word_trend.csv")
 
 word_trend %>%
+  #filter law words
   filter(tokens %in% c("law","act","bill")) %>%
+  #find how much total per week
   group_by(week) %>%
   summarise(sum = sum(sum)) %>%
+  #plot the change
   ggplot(aes(x = week, y = sum)) +
   geom_point() +
+  #create a line of best fit
   geom_smooth(method = "lm", alpha = .15) +
   labs(title = "Count of Words Related to Politics in Senator Tweets",
        subtitle = "Words: law, act, bill",
        x = "Week",
        y = "Count",
        caption = "r = 0.33")
-tempx <- word_trend %>%
+
+#find the r value
+correlation <- word_trend %>%
   filter(tokens %in% c("law","act","bill")) %>%
   group_by(week) %>%
   summarise(sum = sum(sum))
-cor(x = tempx$week,y = tempx$sum)
+#calculate correlation
+cor(x = correlation$week,y = correlation$sum)
 
 
 word_trend %>%
+  #filter economy words
   filter(tokens %in% c("workers","jobs","economy")) %>%
+  #find how much total per week
   group_by(week) %>%
   summarise(sum = sum(sum)) %>%
+  #plot the change
   ggplot(aes(x = week, y = sum)) +
   geom_point() +
+  #create a line of best fit
   geom_smooth(method = "lm", alpha = .15) +
   labs(title = "Count of Words Related to Economy in Senator Tweets",
        subtitle = "Words: workers, jobs, economy",
        x = "Week",
        y = "Count",
        caption = "r = -0.22")
-tempx <- word_trend %>%
+
+#find the r value
+correlation <- word_trend %>%
   filter(tokens %in% c("workers","jobs","economy")) %>%
   group_by(week) %>%
   summarise(sum = sum(sum))
-cor(x = tempx$week,y = tempx$sum)
+#calculate r value
+cor(x = correlation$week,y = correlation$sum)
+```
 
+```{r trend-sentiments}
 #trend of sentiments
-temp_sent <- sentiments %>%
-  group_by(sentiments) %>%
-  summarize(sum = sum(count))
+sent_bar <- read_csv2("../data/textual/sent_bar.csv")
 
-setwd("./..")
-write_csv2(temp_sent, "../data/textual/sent_bar.csv")
-
-temp_sent %>%
+#graph distribution of top sentiments
+sent_bar %>%
+  #graph the top sentiments
   ggplot(aes(x = reorder(sentiments,sum), y = sum)) +
   geom_col(aes(fill = sentiments)) +
   scale_color_brewer(palette = "Set1") +
@@ -226,16 +247,10 @@ temp_sent %>%
        x = "Sentiment",
        y = "Count")
 
-temp_sent <- sentiments %>%
-  group_by(sentiments, week) %>%
-  summarize(prc = mean(percentage)) %>%
-  filter(week != 0) %>%
-  filter(sentiments %in% c("anger","fear","positive","trust"))
+#graph change in sentiments
+sent_final <- read_csv2("../data/textual/sent_final.csv")
 
-setwd("./..")
-write_csv2(temp_sent, "../data/textual/sent_final.csv")
-
-temp_sent %>%
+sent_final %>%
 ggplot(aes(x = week, y = prc)) +
   geom_line(aes(color = sentiments)) +
   scale_color_brewer(palette = "Set1") +
@@ -247,89 +262,19 @@ ggplot(aes(x = week, y = prc)) +
        y = "Percentage",
        caption = "*Percentage is number of each sentiment over total words for that week")
 
-#top words for each sentiment
-temp_word_bar <- temp %>% 
-  inner_join(get_sentiments(lexicon = "nrc"), by = c("tokens" = "word")) %>%
-  group_by(tokens, sentiment) %>%
-  summarize(count = n())
+```
 
-temp_a <- temp_word_bar %>% 
-  filter(sentiment == "anger") %>%
-  arrange(desc(count)) %>%
-  head(n = 7)
-temp_f <- temp_word_bar %>% 
-  filter(sentiment == "fear") %>%
-  arrange(desc(count)) %>%
-  head(n = 7)
-temp_p <- temp_word_bar %>% 
-  filter(sentiment == "positive") %>%
-  arrange(desc(count)) %>%
-  head(n = 7)
-temp_t <- temp_word_bar %>% 
-  filter(sentiment == "trust") %>%
-  arrange(desc(count)) %>%
-  head(n = 7)
+```{r top-words}
+top_words <- read_csv2("data/textual/top_words.csv")
 
-top_words <- rbind(temp_a,temp_f,temp_p,temp_t)
-
-setwd("./..")
-write_csv2(top_words, "../data/textual/top_words.csv")
-
-
-ggplot(temp_final, aes(x = reorder(tokens,count), y = count)) +
+ggplot(top_words, aes(x = reorder(tokens,count), y = count)) +
+  #draw the bars
   geom_col(aes(fill = tokens)) +  
   scale_color_brewer(palette = "Set1") +
   coord_flip() +
+  #facet into the separate sentiments
   facet_wrap(~sentiment, nrow = 2, scales = "free") +
   theme(legend.position = "none") +
-  labs(title = "Most Common Angry Words By Senators",
-       x = "Word",
-       y = "Count")
-
-
-ggplot(temp_a, aes(x = reorder(tokens,count), y = count)) +
-  geom_col(aes(fill = tokens)) +  
-  scale_color_brewer(palette = "Set1") +
-  coord_flip() +
-  facet_wrap(~sentiment, nrow = 4) +
-  theme(legend.position = "none") +
-  labs(title = "Most Common Angry Words By Senators",
-       x = "Word",
-       y = "Count")
-ggplot(temp_f, aes(x = reorder(tokens,count), y = count)) +
-  geom_col(aes(fill = tokens)) +  
-  scale_color_brewer(palette = "Set1") +
-  coord_flip() +
-  facet_wrap(~sentiment, nrow = 4) +
-  theme(legend.position = "none") +
-  labs(title = "Most Common Fearful Words By Senators",
-       x = "Word",
-       y = "Count")
-ggplot(temp_p, aes(x = reorder(tokens,count), y = count)) +
-  geom_col(aes(fill = tokens)) +  
-  scale_color_brewer(palette = "Set1") +
-  coord_flip() +
-  facet_wrap(~sentiment, nrow = 4) +
-  theme(legend.position = "none") +
-  labs(title = "Most Common Positive Words By Senators",
-       x = "Word",
-       y = "Count")
-ggplot(temp_t, aes(x = reorder(tokens,count), y = count)) +
-  geom_col(aes(fill = tokens)) +  
-  scale_color_brewer(palette = "Set1") +
-  coord_flip() +
-  facet_wrap(~sentiment, nrow = 4) +
-  theme(legend.position = "none") +
-  labs(title = "Most Common Trustful Words By Senators",
-       x = "Word",
-       y = "Count")
-
-
+  labs(title = "Most Common Angry Words By Senators",)
 ```
-
-```{r}
-#additional wrangling
-```
-
-
 

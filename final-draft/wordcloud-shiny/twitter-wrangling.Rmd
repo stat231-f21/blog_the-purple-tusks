@@ -272,32 +272,42 @@ word_count <- senator_covid_words %>%
   mutate(percentage = count * 100 / total_tweets)
 
 #add the percentage of that sentiment over the total number of that sentiment
-temp <- senator_covid_words %>%
+prc_sentiment_df <- senator_covid_words %>%
+  #count the total number of sentiments
   group_by(week,sentiment,state) %>%
   summarise(total = n()) %>%
+  #pivot in order to count total words
   pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
   mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
+  #pivot back after counting
   pivot_longer(-c(week,total_tweets, state),names_to = "sentiments", values_to = "count") %>%
+  #count the total
   group_by(state, sentiments) %>%
   summarise(total_sentiment = sum(count))
 
-word_count <- inner_join(word_count, temp, by = c("state","sentiments")) %>%
+#join the prc just counted
+word_count <- inner_join(word_count, prc_sentiment_df, by = c("state","sentiments")) %>%
+  #calculate the percentage how what week has the most proportion of each individual sentiment
   mutate(percentage_of_total_sentiment = count * 100 / total_sentiment)
 
 #add percentage of national sentiments
-temp <- senator_covid_words %>%
+prc_ntl_df <- senator_covid_words %>%
+  #count the total number of sentiments
   group_by(week,sentiment,state) %>%
   summarise(total = n()) %>%
   pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
   mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
   pivot_longer(-c(week,total_tweets, state),names_to = "sentiments", values_to = "count") %>%
+  #group by different numbers this time
   group_by(week, sentiments) %>%
   summarise(national_week_sentiment = sum(count))
 
-word_count <- inner_join(word_count, temp, by = c("week","sentiments")) %>%
+#rejoin and calculate
+word_count <- inner_join(prc_ntl_df, temp, by = c("week","sentiments")) %>%
+  #calculate the percentage of how the sentiment in that state compares to the total of that sentiment in the nation
   mutate(percentage_of_national_sentiment = count * 100 / national_week_sentiment)
 
-#national sentiments
+#national sentiments to compare to nation
 word_count_national <- senator_covid_words %>%
   group_by(week,sentiment) %>%
   summarise(total = n()) %>%
@@ -308,23 +318,25 @@ word_count_national <- senator_covid_words %>%
 word_count <- inner_join(word_count, tibble(state = state.name,
                               abv = state.abb))
 
-write_csv2(word_count, "data/textual/twitter_sentiments.csv")
+write_csv2(word_count, "../data/textual/twitter_sentiments.csv")
 
-write_csv2(word_count_national, "data/textual/ntl_twitter_sentiments.csv")
+write_csv2(word_count_national, "../data/textual/ntl_twitter_sentiments.csv")
 
-test <- read_csv2("data/textual/senator_tweets.csv")
+#compress the data for shiny app
+senator_tweets_small <- read_csv2("../data/textual/senator_tweets.csv")
 
-test <- test %>%
+#select only two columns
+senator_tweets_small <- senator_tweets_small %>%
   select(text,created_at)
-test %>%
- write_csv2("data/textual/wordcloud_data.csv")
+senator_tweets_small %>%
+ write_csv2("../data/textual/wordcloud_data.csv")
 ```
 
 ```{r wordcloud}
-senator_tweets_covid <- read_csv2("data/textual/senator_tweets_covid.csv")
+senator_tweets_covid <- read_csv2("../data/textual/senator_tweets_covid.csv")
 
 #word cloud dataset with afinn
-temp <- senator_tweets_covid %>%
+tweets_tokenized <- senator_tweets_covid %>%
   unnest_tokens(input = text, output = tokens) %>% 
   #get rid of stop words
   anti_join(stop_words, by = c("tokens" = "word"))
@@ -332,55 +344,127 @@ temp <- senator_tweets_covid %>%
 #create a dataset of word counts with 
 senator_wordcloud <- tibble()
 
-for(i in 1:39){
-  for(j in 1:50){
-    temp2 <- temp %>%
+#loop in order to count the total sentiments by week and state 
+for(i in 1:39){ #every week
+  for(j in 1:50){ #every state
+    week_state_sentiments <- tweets_tokenized %>%
+      #filter to only the week and state of loop
       filter(week == i, state == state.name[j]) %>%
+      #count each token
       count(tokens) %>%
       #join with sentiments
       inner_join(get_sentiments(lexicon = "afinn"), by = c("tokens" = "word")) %>%
       arrange(desc(n)) %>%
+      #add week and state column
       mutate(week = i, state = state.name[j])
   
+    #add to big df
     senator_wordcloud <- senator_wordcloud %>%
-      rbind(temp2)
+      rbind(week_state_sentiments)
   }
 }
 
-senator_wordcloud
-
-write_csv2(senator_wordcloud, "data/textual/senator_wordcloud.csv")
-
-#create a total one
-senator_wordcloud_total <- senator_tweets_covid %>%
-  unnest_tokens(input = text, output = tokens) %>% 
-  #get rid of stop words
-  anti_join(stop_words, by = c("tokens" = "word")) %>%
-  filter(week == 5) %>%
-  count(tokens) %>%
-  #join with sentiments
-  inner_join(get_sentiments(lexicon = "afinn"), by = c("tokens" = "word")) %>%
-  arrange(desc(n))
-
-write_csv2(senator_wordcloud_total, "data/textual/senator_wordcloud_total.csv")
-
-ggplot(senator_wordcloud[1:50,], aes(label = tokens)) +
-  geom_text_wordcloud(aes(size = n, color = value)) + 
-  theme_minimal()
-
+write_csv2(senator_wordcloud, "../data/textual/senator_wordcloud.csv")
 ```
 
 ```{r final-graph-wrangling}
 sentiments <- read_csv2("../data/textual/twitter_sentiments.csv")
 tweets <- read_csv2("../data/textual/senator_tweets_covid.csv")
 
+#wrangle for the final graph
 prc_of_total_sentiment_data <- sentiments %>%
+  #filter out week 0 and specific sentiments
   filter(!week == 0,
          sentiments == c("anger","fear","joy","positive","negative","sadness","trust")) %>%
+  #count the total and calculate the mean prc
   group_by(week, sentiments) %>%
   summarise(count = sum(count), prc = mean(percentage_of_total_sentiment))
 
 write_csv2(prc_of_total_sentiment_data,"../data/textual/prc_of_total_sentiment_data.csv")
+
+
+#wrangle for the wordclouds
+tweets <- read_csv2("../data/textual/senator_tweets_covid.csv")
+
+senator_words <- tweets %>% 
+  #unnest and tokenize
+  unnest_tokens(input = text, output = tokens) %>% 
+  #get rid of stop words
+  anti_join(stop_words, by = c("tokens" = "word")) %>%
+  #get rid of unnecessary data
+  select(state, week, tokens)
+
+write_csv2(senator_words, "../data/textual/senator_words.csv")
+
+#create df of number of words by week
+word_trend <-  senator_words %>% 
+  #filter out week 0
+  filter(week != 0) %>%
+  #group by words and week
+  group_by(tokens, week) %>%
+  #count total
+  summarise(sum = n()) %>%
+  #arrange
+  arrange(week) 
+
+write_csv2(word_trend, "../data/textual/word_trend.csv")
+
+
+#create a summarization of how many sentiments total
+#load file
+sentiments <- read_csv2("../data/textual/twitter_sentiments.csv")
+
+sent_count <- sentiments %>%
+  #group by sentiments and add up total
+  group_by(sentiments) %>%
+  summarize(sum = sum(count))
+
+write_csv2(sent_count, "../data/textual/sent_bar.csv")
+
+#prc change for national sentiments
+sent_final <- sentiments %>%
+  #group by sentiments and week
+  group_by(sentiments, week) %>%
+  #calculate the mean percentage for all the sates
+  summarize(prc = mean(percentage)) %>%
+  #rid of week 0
+  filter(week != 0) %>%
+  #get 4 most important sentiments
+  filter(sentiments %in% c("anger","fear","positive","trust"))
+
+write_csv2(sent_final, "../data/textual/sent_final.csv")
+
+#create df of top 7 words of four chosen sentiments
+senator_words <- read_csv2("../data/textual/senator_words.csv")
+top_words <- senator_words %>% 
+  #join with sentiments
+  inner_join(get_sentiments(lexicon = "nrc"), by = c("tokens" = "word")) %>%
+  #count number of each word
+  group_by(tokens, sentiment) %>%
+  summarize(count = n())
+
+#filter each sentiment then take the top 7
+anger <- temp_word_bar %>% 
+  filter(sentiment == "anger") %>%
+  arrange(desc(count)) %>%
+  head(n = 7)
+fear <- temp_word_bar %>% 
+  filter(sentiment == "fear") %>%
+  arrange(desc(count)) %>%
+  head(n = 7)
+positive <- temp_word_bar %>% 
+  filter(sentiment == "positive") %>%
+  arrange(desc(count)) %>%
+  head(n = 7)
+trust <- temp_word_bar %>% 
+  filter(sentiment == "trust") %>%
+  arrange(desc(count)) %>%
+  head(n = 7)
+
+#join all of those together
+top_words <- rbind(anger,fear,positive,trust)
+
+write_csv2(top_words, "../data/textual/top_words.csv")
 ```
 
 
