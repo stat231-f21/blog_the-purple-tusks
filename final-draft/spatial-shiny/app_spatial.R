@@ -7,23 +7,27 @@
 #    http://shiny.rstudio.com/
 #
 
+# importing libraries
 library(tidyverse)
 library(dplyr)
 library(tidyr)
 library(usmap)
 
-### Options ###
+# importing data
 covid_19_spatial <- read_csv("../data/covid/covid_19_spatial.csv")
+mental_health_spatial <- read_csv("../data/mental-health/mental_health_spatial.csv")
+us_sentiments <- read_csv2("../data/textual/twitter_sentiments.csv")
+### Widgets ###
+
+# radiobuttons
 covid_choice_values <- c("percentage_cases_bar", "percentage_deaths_bar")
 covid_choice_names <- c("Cases Percentage", "Death Percentage")
 names(covid_choice_values) <- covid_choice_names
 
-mental_health_spatial <- read_csv("../data/mental-health/mental_health_spatial.csv")
 mental_choice_values <- c("anxiety_percentage", "depression_percentage")
 mental_choice_names <- c("Anxiety Percentage", "Depression Percentage")
 names(mental_choice_values) <- mental_choice_names
 
-us_sentiments <- read_csv2("../data/textual/twitter_sentiments.csv")
 sentiment_choices <- unique(us_sentiments$sentiments)
 
 

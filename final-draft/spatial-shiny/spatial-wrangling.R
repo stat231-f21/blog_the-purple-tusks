@@ -1,17 +1,12 @@
 
-  
-
 # COVID-19 data wrangling
-
-
-
 library(dplyr)
 library(readr)
 library(grid)
 
 
 
-# data from the NY Times
+# data from the NY Times (downloaded from their official github)
 uscovid <- read_csv("../data/covid/uscovid.csv")
 
 # filtering specific dates from my uscovid dataset in accordance with the mental health data which we already have splitted in terms of weeks
@@ -102,12 +97,20 @@ state_total_by_week <- us %>%
   group_by(state, week) %>%
   summarize(total_cases = sum(cases), total_deaths = sum(deaths))
 
+# dataset with us cases total by week
+us_total_by_week <- us %>%
+  group_by(week) %>%
+  summarize(total_cases_us = sum(cases), 
+            total_deaths_us = sum(deaths))
+
 # creating a new dataset which has total cases/deaths of the entire nation by weeks
 national_total_by_week <- us %>%
   group_by(week) %>%
-  summarize(total_cases_us = sum(cases), total_deaths_us = sum(deaths)) %>%
+  summarize(total_cases_us = sum(cases), 
+            total_deaths_us = sum(deaths)) %>%
   mutate(state = "National") %>%
-  rename("total_cases" = total_cases_us,"total_deaths" = total_deaths_us)
+  rename("total_cases" = total_cases_us,
+         "total_deaths" = total_deaths_us)
 
 # binding to have a notion of national
 final_state_total_by_week <- rbind(state_total_by_week,national_total_by_week)
@@ -115,7 +118,8 @@ final_state_total_by_week <- rbind(state_total_by_week,national_total_by_week)
 # totaling us by state
 us_total_by_state <- us %>%
   group_by(state) %>%
-  summarize(total_cases_state_all_weeks = sum(cases), total_deaths_state_all_weeks = sum(deaths)) 
+  summarize(total_cases_state_all_weeks = sum(cases), 
+            total_deaths_state_all_weeks = sum(deaths)) 
 
 # adding a sense of national
 us_total_by_state <- us_total_by_state %>%
@@ -126,20 +130,19 @@ us_total_by_state <- us_total_by_state %>%
 # joined data for spatial
 us_joined_spatial <- inner_join(final_state_total_by_week,us_total_by_week,by = "week")
 
-# joined data for bar
-us_joined_bar <- inner_join(us_joined_spatial,us_total_by_state,by = "state")
+# joined data
+us_joined <- inner_join(us_joined_spatial,us_total_by_state,by = "state")
 
 # adding the respective percentages
-covid_us_final <- us_joined_bar %>% 
-  mutate(percentage_cases_spatial = (total_cases/total_cases_us) *100,
-         percentage_deaths_spatial = (total_deaths/total_deaths_us) *100,
-         percentage_cases_bar = (total_cases/total_cases_state_all_weeks) *100,
-         percentage_deaths_bar = (total_deaths/total_deaths_state_all_weeks) *100
+covid_us_final <- us_joined %>% 
+  mutate(percentage_cases = (total_cases/total_cases_state_all_weeks) *100,
+         percentage_deaths = (total_deaths/total_deaths_state_all_weeks) *100
   )
 
 #write.csv(covid_us_final, "covid_updated.csv")
 mental_health <- read_csv("../data/mental-health/mental_health.csv")
 mental_health_spatial <- mental_health %>%
-  rename(week = WEEK, state = State)
+  rename(week = WEEK, 
+         state = State)
 
 mental_health_spatial$state <- tolower(mental_health_spatial$state)

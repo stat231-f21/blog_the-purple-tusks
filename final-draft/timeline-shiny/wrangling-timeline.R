@@ -20,7 +20,7 @@ mental_health <- read_csv("../data/mental-health/mental_health.csv")
 
 covid_updated <- covid_updated %>%
   select(-"...1") %>%
-  rename(percentage_cases_state = percentage_cases_bar, percentage_deaths_state = percentage_deaths_bar)
+  rename(percentage_cases_state = percentage_cases, percentage_deaths_state = percentage_deaths)
 
 mental_health <- mental_health %>%
   rename(state = State, week = WEEK)
