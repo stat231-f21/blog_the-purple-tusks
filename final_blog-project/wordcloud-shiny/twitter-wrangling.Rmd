@@ -1,0 +1,696 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(csv)
+library(dplyr)
+library(rtweet)
+library(httpuv)
+library(tidytext)
+library(lubridate)
+library(twitteR)
+library(robotstxt)
+library(readxl)
+library(wordcloud)
+library(ggwordcloud)
+```
+
+
+
+```{r, authentification-token}
+# store api keys
+api_key <- "1zTkAFaSLvGEUnB2PPPe9nSqh"
+api_secret_key <- "1T0nQLQwSUZVqAPhfn3QB2TEy5X81ay8sUjAzNOSVLpEO92gMM"
+access_token <- "1269483564384444416-S4blcCi966TkuH8XKyboBD1OvlQQLk"
+access_token_secret <- "5vwTUNgZPiFdqyve3SKjsZm11vdNQFac46uEDXsG1vcGq"
+
+# authenticate via web broswer
+token <- create_token(
+  app = "blog-project",
+  consumer_key = api_key,
+  consumer_secret = api_secret_key,
+  access_token = access_token,
+  access_secret = access_token_secret)
+
+consumer_key = api_key
+consumer_secret = api_secret_key
+access_token = access_token
+access_secret = access_token_secret
+
+saveRDS(token, "~/.rtweet.rds")
+twitter_pat = "~/.rtweet.rds"
+
+get_token()
+setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
+```
+
+```{r twitter-senators-links}
+#get state abbreviations
+state_full <- tibble(abv = state.abb,
+                     state = state.name)
+
+#read from excel, source: https://www.autismspeaks.org/sites/default/files/116th%20Senator%20Twitter%20Handles.pdf
+senator_profiles_117 <- read_xlsx("../data/textual/congress_117.xlsx")
+#tidy up
+senator_profiles_117 <- senator_profiles_117 %>%
+  rename(name = "SENATORS", link = "...2", abv = "...3", party = "...4") %>%
+  filter(!(name=="Name")) %>%
+  #add state names
+  inner_join(state_full, by = c("abv" = "abv")) %>%
+  #add congress year, tidy username
+  mutate(congress = 117, 
+         link = substring(link,21)) %>%
+  select(-party)
+
+#reorder name order (first -> last)
+for(i in 1:nrow(senator_profiles_117)){
+  if(i != 55){ #special case with three names at 55th name
+    #reorder name to keep consistent format
+    location <- as.numeric(gregexec(pattern = ",", senator_profiles_117$name[i]))
+    first = substring(text = senator_profiles_117$name[i], location + 2)
+    last = substring(text = senator_profiles_117$name[i], first = 1, last = location-1)
+    senator_profiles_117$name[i] = paste(first, last)}
+  else if (i == 55){ #special case with three names at 55th name
+    senator_profiles_117$name[i] = "Joe Manchin III"
+  }
+}
+
+#116th congress
+senator_profiles_116 <- read_file("../data/textual/congress_116.txt")
+
+#organice text file
+senator_profiles_116 <- read_lines(senator_profiles_116) %>%
+  data_frame() %>%
+  rename(state = ".")
+
+temp <- str_split_fixed(senator_profiles_116$state, " ", 2)
+
+temp2 <- str_split_fixed(temp[,2], " @", 2)
+
+#create dataframe that has seperate state column of both congresses
+senator_profiles_116 <- tibble(abv = temp[,1], name = temp2[,1], link = temp2[,2]) %>%
+  inner_join(state_full, by = c("abv" = "abv")) %>%
+  mutate(congress = 116)
+
+#clear the data
+rm(temp,temp2)
+
+#combine the senator profiles while removing the duplicates
+senator_profiles <- rbind(senator_profiles_116,senator_profiles_117) %>%
+  arrange(by = link) %>%
+  filter(duplicated(link) == FALSE)
+
+#exceptions for scraping where @ was wrong
+senator_profiles$link[32] <- "LeaderMcConnell"
+senator_profiles$link[51] <- "RepMarshall"
+senator_profiles$link[86] <- "KamalaHarris"
+senator_profiles$link[91] <- "MarthaMcSally"
+
+#Senators with no tweets
+senator_profiles <- senator_profiles[-33,]
+senator_profiles <- senator_profiles[-51,]
+```
+
+```{r twitter-senator-scraping, eval=FALSE}
+#initialize dataset
+senator_tweets = data_frame()
+
+#calculate run time
+#all the time code is just for me to see how long the process takes out of curiosity
+start <- Sys.time()
+
+#loop to get twitter timelines for all senators of past two years
+for(i in 1:nrow(senator_profiles)){
+  profile_start <- Sys.time()
+  
+  #use api
+  tweets <- get_timeline(user = senator_profiles$link[i], n = 3200, check = FALSE) %>%
+    #select relevant info
+    select(c("created_at","screen_name","text","source","favorite_count","retweet_count","hashtags","location")) %>%
+    #add info from senator tweets
+    mutate(name = senator_profiles$name[i],
+           abv = senator_profiles$abv[i],
+           state = senator_profiles$state[i]) %>%
+    #reorder columns
+    select(c(10,11,9,3,4,5,6,7,1,2,8))
+  
+  #add to big dataset
+  senator_tweets <- rbind(senator_tweets, tweets)
+  
+  #see progress
+  print(i)
+  print(senator_profiles$name[i])
+  print("profile time:")
+  print(Sys.time() - profile_start)
+  print("total:")
+  print(Sys.time() - start)
+}
+
+write_csv2(senator_tweets,file = "../data/textual/senator_tweets.csv")
+
+finish <- Sys.time()
+
+```
+
+```{r tweet-sentiment}
+#get stop words
+data(stop_words)
+
+#load data (NOTE: NEED TO UNZIP FILE FIRST FROM FOLDER)
+senator_tweets <- read.csv2("../data/textual/senator_tweets.csv")
+
+#list of related words
+related_words <- c("covid","mask.","mandate","vaccine","lockdown","pandemic","hospitlization","corona.","health.","case.","safety","distanc.","social","CDC","sick.","virus","quarantine","spread","contain","law","contact","isolation")
+
+#create search query in right format
+query <- paste(related_words, collapse = "|")
+
+#filter through related tweets
+senator_tweets_covid <- senator_tweets %>% 
+  filter(grepl(query,text))
+
+#wrangle the date
+senator_tweets_covid <- senator_tweets_covid %>%
+  #rename column
+  rename(date = created_at) %>%
+  
+  #select date range
+  mutate(date = ymd(substring(date, first = 1, last = 10)),
+         week = 0) %>%
+  #filter relevant date
+  filter(date %in% ymd("2020-04-23"):ymd("2021-10-11")) %>%
+  arrange(date)
+
+#ADD IN WEEK
+
+#get the endpoints of our date divisions
+text_data <- " 2020-04-23 - 2020-05-05
+ 2020-05-07 - 2020-05-12
+ 2020-05-14 - 2020-05-19
+ 2020-05-21 - 2020-05-26
+ 2020-05-28 - 2020-06-02
+ 2020-06-04 - 2020-06-09
+ 2020-06-11 - 2020-06-16
+ 2020-06-18 - 2020-06-23
+ 2020-06-25 - 2020-06-30 
+ 2020-07-02 - 2020-07-07
+ 2020-07-09 - 2020-07-14
+ 2020-07-16 - 2020-07-21
+ 2020-08-19 - 2020-08-31
+ 2020-09-02 - 2020-09-14
+ 2020-09-16 - 2020-09-28
+ 2020-09-30 - 2020-10-12
+ 2020-10-14 - 2020-10-26
+ 2020-10-28 - 2020-11-09
+ 2020-11-11 - 2020-11-23
+ 2020-11-25 - 2020-12-07
+ 2020-12-09 - 2020-12-21 
+ 2021-01-06 - 2021-01-18
+ 2021-01-20 - 2021-02-01 
+ 2021-02-03 - 2021-02-15
+ 2021-02-17 - 2021-03-01
+ 2021-03-03 - 2021-03-15
+ 2021-03-17 - 2021-03-29
+ 2021-04-14 - 2021-04-26
+ 2021-04-28 - 2021-05-10
+ 2021-05-12 - 2021-05-24 
+ 2021-05-26 - 2021-06-07
+ 2021-06-09 - 2021-06-21
+ 2021-06-23 - 2021-07-05 
+ 2021-07-21 - 2021-08-02
+ 2021-08-04 - 2021-08-16
+ 2021-08-18 - 2021-08-30
+ 2021-09-01 - 2021-09-13
+ 2021-09-15 - 2021-09-27
+ 2021-09-29 - 2021-10-11"
+
+#format the week endpoints
+text_data <- text_data %>%
+  str_split("\n| - ")
+
+dates_data <- tibble(date = text_data) %>%
+  unnest()
+
+
+#check if the dates of tweets are within the range
+for(i in 1:nrow(senator_tweets_covid)){ #go through every tweet
+  for(j in 1:39){ #check if is within the week range for all the ranges
+    if(senator_tweets_covid$date[i] %in% ymd(dates_data$date[1+2*(j-1)]):ymd(dates_data$date[2*j])){
+      senator_tweets_covid$week[i] = j
+      break;
+    }
+  }
+  print(i*100/nrow(senator_tweets_covid)) #check progress
+}
+
+#save
+write_csv2(senator_tweets_covid, "../data/textual/senator_tweets_covid.csv")
+senator_tweets_covid <- read_csv2("../data/textual/senator_tweets_covid.csv")
+
+#tokenize the tweets
+senator_covid_words <- senator_tweets_covid %>%
+  unnest_tokens(input = text, output = tokens) %>% 
+  #get rid of stop words
+  anti_join(stop_words, by = c("tokens" = "word")) %>%
+  #join with sentiments
+  inner_join(get_sentiments(lexicon = "nrc"), by = c("tokens" = "word"))
+
+#count the number of sentiments
+word_count <- senator_covid_words %>%
+  group_by(week,sentiment,state) %>%
+  summarise(total = n()) %>%
+  #pivot wider in order to count the total sentiments
+  pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
+  mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
+  #then pivot back into long format
+  pivot_longer(-c(week,total_tweets, state),names_to = "sentiments", values_to = "count") %>% 
+  #calculate sentiment percentage
+  mutate(percentage = count * 100 / total_tweets)
+
+#add the percentage of that sentiment over the total number of that sentiment
+prc_sentiment_df <- senator_covid_words %>%
+  #count the total number of sentiments
+  group_by(week,sentiment,state) %>%
+  summarise(total = n()) %>%
+  #pivot in order to count total words
+  pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
+  mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
+  #pivot back after counting
+  pivot_longer(-c(week,total_tweets, state),names_to = "sentiments", values_to = "count") %>%
+  #count the total
+  group_by(state, sentiments) %>%
+  summarise(total_sentiment = sum(count))
+
+#join the prc just counted
+word_count <- inner_join(word_count, prc_sentiment_df, by = c("state","sentiments")) %>%
+  #calculate the percentage how what week has the most proportion of each individual sentiment
+  mutate(percentage_of_total_sentiment = count * 100 / total_sentiment)
+
+#add percentage of national sentiments
+prc_ntl_df <- senator_covid_words %>%
+  #count the total number of sentiments
+  group_by(week,sentiment,state) %>%
+  summarise(total = n()) %>%
+  pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
+  mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
+  pivot_longer(-c(week,total_tweets, state),names_to = "sentiments", values_to = "count") %>%
+  #group by different numbers this time
+  group_by(week, sentiments) %>%
+  summarise(national_week_sentiment = sum(count))
+
+#rejoin and calculate
+word_count <- inner_join(prc_ntl_df, temp, by = c("week","sentiments")) %>%
+  #calculate the percentage of how the sentiment in that state compares to the total of that sentiment in the nation
+  mutate(percentage_of_national_sentiment = count * 100 / national_week_sentiment)
+
+#national sentiments to compare to nation
+word_count_national <- senator_covid_words %>%
+  group_by(week,sentiment) %>%
+  summarise(total = n()) %>%
+  pivot_wider(names_from = sentiment, values_from = total, values_fill = 0) %>%
+  mutate(total_tweets = positive+negative+anger+anticipation+disgust+fear+joy+sadness+surprise+trust) %>%
+  pivot_longer(-c(week,total_tweets),names_to = "sentiments", values_to = "count")
+
+word_count <- inner_join(word_count, tibble(state = state.name,
+                              abv = state.abb))
+
+write_csv2(word_count, "../data/textual/twitter_sentiments.csv")
+
+write_csv2(word_count_national, "../data/textual/ntl_twitter_sentiments.csv")
+
+#compress the data for shiny app
+senator_tweets_small <- read_csv2("../data/textual/senator_tweets.csv")
+
+#select only two columns
+senator_tweets_small <- senator_tweets_small %>%
+  select(text,created_at)
+senator_tweets_small %>%
+ write_csv2("../data/textual/wordcloud_data.csv")
+```
+
+```{r wordcloud}
+senator_tweets_covid <- read_csv2("../data/textual/senator_tweets_covid.csv")
+
+#word cloud dataset with afinn
+tweets_tokenized <- senator_tweets_covid %>%
+  unnest_tokens(input = text, output = tokens) %>% 
+  #get rid of stop words
+  anti_join(stop_words, by = c("tokens" = "word"))
+
+#create a dataset of word counts with 
+senator_wordcloud <- tibble()
+
+#loop in order to count the total sentiments by week and state 
+for(i in 1:39){ #every week
+  for(j in 1:50){ #every state
+    week_state_sentiments <- tweets_tokenized %>%
+      #filter to only the week and state of loop
+      filter(week == i, state == state.name[j]) %>%
+      #count each token
+      count(tokens) %>%
+      #join with sentiments
+      inner_join(get_sentiments(lexicon = "afinn"), by = c("tokens" = "word")) %>%
+      arrange(desc(n)) %>%
+      #add week and state column
+      mutate(week = i, state = state.name[j])
+  
+    #add to big df
+    senator_wordcloud <- senator_wordcloud %>%
+      rbind(week_state_sentiments)
+  }
+}
+
+write_csv2(senator_wordcloud, "../data/textual/senator_wordcloud.csv")
+```
+
+```{r final-graph-wrangling}
+sentiments <- read_csv2("../data/textual/twitter_sentiments.csv")
+tweets <- read_csv2("../data/textual/senator_tweets_covid.csv")
+
+#wrangle for the final graph
+prc_of_total_sentiment_data <- sentiments %>%
+  #filter out week 0 and specific sentiments
+  filter(!week == 0,
+         sentiments == c("anger","fear","joy","positive","negative","sadness","trust")) %>%
+  #count the total and calculate the mean prc
+  group_by(week, sentiments) %>%
+  summarise(count = sum(count), prc = mean(percentage_of_total_sentiment))
+
+write_csv2(prc_of_total_sentiment_data,"../data/textual/prc_of_total_sentiment_data.csv")
+
+
+#wrangle for the wordclouds
+tweets <- read_csv2("../data/textual/senator_tweets_covid.csv")
+
+senator_words <- tweets %>% 
+  #unnest and tokenize
+  unnest_tokens(input = text, output = tokens) %>% 
+  #get rid of stop words
+  anti_join(stop_words, by = c("tokens" = "word")) %>%
+  #get rid of unnecessary data
+  select(state, week, tokens)
+
+write_csv2(senator_words, "../data/textual/senator_words.csv")
+
+#create df of number of words by week
+word_trend <-  senator_words %>% 
+  #filter out week 0
+  filter(week != 0) %>%
+  #group by words and week
+  group_by(tokens, week) %>%
+  #count total
+  summarise(sum = n()) %>%
+  #arrange
+  arrange(week) 
+
+write_csv2(word_trend, "../data/textual/word_trend.csv")
+
+
+#create a summarization of how many sentiments total
+#load file
+sentiments <- read_csv2("../data/textual/twitter_sentiments.csv")
+
+sent_count <- sentiments %>%
+  #group by sentiments and add up total
+  group_by(sentiments) %>%
+  summarize(sum = sum(count))
+
+write_csv2(sent_count, "../data/textual/sent_bar.csv")
+
+#prc change for national sentiments
+sent_final <- sentiments %>%
+  #group by sentiments and week
+  group_by(sentiments, week) %>%
+  #calculate the mean percentage for all the sates
+  summarize(prc = mean(percentage)) %>%
+  #rid of week 0
+  filter(week != 0) %>%
+  #get 4 most important sentiments
+  filter(sentiments %in% c("anger","fear","positive","trust"))
+
+write_csv2(sent_final, "../data/textual/sent_final.csv")
+
+#create df of top 7 words of four chosen sentiments
+senator_words <- read_csv2("../data/textual/senator_words.csv")
+top_words <- senator_words %>% 
+  #join with sentiments
+  inner_join(get_sentiments(lexicon = "nrc"), by = c("tokens" = "word")) %>%
+  #count number of each word
+  group_by(tokens, sentiment) %>%
+  summarize(count = n())
+
+#filter each sentiment then take the top 7
+anger <- temp_word_bar %>% 
+  filter(sentiment == "anger") %>%
+  arrange(desc(count)) %>%
+  head(n = 7)
+fear <- temp_word_bar %>% 
+  filter(sentiment == "fear") %>%
+  arrange(desc(count)) %>%
+  head(n = 7)
+positive <- temp_word_bar %>% 
+  filter(sentiment == "positive") %>%
+  arrange(desc(count)) %>%
+  head(n = 7)
+trust <- temp_word_bar %>% 
+  filter(sentiment == "trust") %>%
+  arrange(desc(count)) %>%
+  head(n = 7)
+
+#join all of those together
+top_words <- rbind(anger,fear,positive,trust)
+
+write_csv2(top_words, "../data/textual/top_words.csv")
+```
+
+
+
+#draft code
+
+<!-- ```{r tweet-miner, eval=FALSE} -->
+<!-- #set the weeks character strings needed in the correct format -->
+<!-- text_data <- " 2020-04-23 - 2020-05-05 -->
+<!--  2020-05-07 - 2020-05-12 -->
+<!--  2020-05-14 - 2020-05-19 -->
+<!--  2020-05-21 - 2020-05-26 -->
+<!--  2020-05-28 - 2020-06-02 -->
+<!--  2020-06-04 - 2020-06-09 -->
+<!--  2020-06-11 - 2020-06-16 -->
+<!--  2020-06-18 - 2020-06-23 -->
+<!--  2020-06-25 - 2020-06-30  -->
+<!--  2020-07-02 - 2020-07-07 -->
+<!--  2020-07-09 - 2020-07-14 -->
+<!--  2020-07-16 - 2020-07-21 -->
+<!--  2020-08-19 - 2020-08-31 -->
+<!--  2020-09-02 - 2020-09-14 -->
+<!--  2020-09-16 - 2020-09-28 -->
+<!--  2020-09-30 - 2020-10-12 -->
+<!--  2020-10-14 - 2020-10-26 -->
+<!--  2020-10-28 - 2020-11-09 -->
+<!--  2020-11-11 - 2020-11-23 -->
+<!--  2020-11-25 - 2020-12-07 -->
+<!--  2020-12-09 - 2020-12-21  -->
+<!--  2021-01-06 - 2021-01-18 -->
+<!--  2021-01-20 - 2021-02-01  -->
+<!--  2021-02-03 - 2021-02-15 -->
+<!--  2021-02-17 - 2021-03-01 -->
+<!--  2021-03-03 - 2021-03-15 -->
+<!--  2021-03-17 - 2021-03-29 -->
+<!--  2021-04-14 - 2021-04-26 -->
+<!--  2021-04-28 - 2021-05-10 -->
+<!--  2021-05-12 - 2021-05-24  -->
+<!--  2021-05-26 - 2021-06-07 -->
+<!--  2021-06-09 - 2021-06-21 -->
+<!--  2021-06-23 - 2021-07-05  -->
+<!--  2021-07-21 - 2021-08-02 -->
+<!--  2021-08-04 - 2021-08-16 -->
+<!--  2021-08-18 - 2021-08-30 -->
+<!--  2021-09-01 - 2021-09-13 -->
+<!--  2021-09-15 - 2021-09-27 -->
+<!--  2021-09-29 - 2021-10-11" -->
+<!-- text_data <- text_data %>% -->
+<!--   str_split("\n|  ") -->
+
+<!-- dates_data <- tibble(date = text_data) %>% -->
+<!--   unnest() -->
+
+<!-- #grab twitter data -->
+
+<!-- tweets_full <- tibble() -->
+
+<!-- for(i in 1:39){ -->
+<!--   for(j in 1:50){ -->
+<!--     #query text with state name -->
+<!--     query <- paste(state.name[j], -->
+<!--                    " (covid OR mask OR mandate OR vaccine OR lockdown) lang:en") -->
+<!--     print(query) -->
+
+<!--     #the date parameter for search function -->
+<!--     d1 <- paste(dates_data$date[1+2*(i-1)], -->
+<!--                 "0101", -->
+<!--                 sep = "") -->
+<!--     d2 <- paste(dates_data$date[2*i], -->
+<!--                 "0101", -->
+<!--                 sep = "") -->
+
+<!--     #search the twitter archive -->
+<!--     temp <- search_fullarchive(q = query,  -->
+<!--                                n = 500, -->
+<!--                                fromDate = d1, -->
+<!--                                toDate = d2, -->
+<!--                                env_name = "historicalsearch", -->
+<!--                                token = token) %>% -->
+<!--       mutate(week = i, state = state.name[j]) %>% -->
+<!--       select(c("screen_name","text","is_retweet","favorite_count","hashtags","name","location","followers_count","week","state")) -->
+
+<!--     tweets_full <- rbind2(x = tweets_full, y = temp) -->
+<!--   } -->
+
+<!-- } -->
+
+<!-- #test code -->
+<!-- rm(temp) -->
+<!-- temp <- search_fullarchive(q = query,  -->
+<!--                                n = 1, -->
+<!--                                fromDate = d1, -->
+<!--                                toDate = d2, -->
+<!--                                env_name = "historicalsearch", -->
+<!--                                token = token) %>% -->
+<!--       mutate(week = i, state = state.name[j]) -->
+<!-- tweets_full -->
+<!-- glimpse(temp) -->
+<!-- query -->
+<!-- d1 -->
+<!-- d2 -->
+<!-- token -->
+<!-- master <- tibble() -->
+<!-- master -->
+<!-- search_fullarchive(q = query, n = 500, fromDate = 202009000000,  toDate = 202010110000, env_name = "historialsearch") -->
+<!-- temp <- search_fullarchive(q = query, fromDate = d1,  toDate = d2, env_name = "historicalsearch") -->
+<!-- master <- rbind2(x = master, y = temp) -->
+<!-- temp -->
+<!-- paste(dates_data$date[1+2*(39-1)],"0000",sep = "") -->
+<!-- paste(state.name[1]," (covid OR mask OR mandate OR vaccine OR lockdown) -is:retweet",sep = "") -->
+<!-- dates_data$date -->
+<!-- ``` -->
+
+<!-- ```{r reddit-scraping} -->
+<!-- #search aggregator -->
+<!-- paths_allowed("https://redditsearch.io/") -->
+
+<!-- #site itself -->
+<!-- paths_allowed("https://www.reddit.com/") -->
+
+<!-- #grab links of all sites -->
+<!-- samplelink <- "https://redditsearch.io/?term=texas%20covid&dataviz=false&aggs=false&subreddits=&searchtype=posts&search=true&start=1597982400&end=1598760000&size=100" -->
+
+<!-- #get dates, convert to datetime for redditsearch -->
+<!-- text_data <- " 2020-04-23 - 2020-05-05 -->
+<!--  2020-05-07 - 2020-05-12 -->
+<!--  2020-05-14 - 2020-05-19 -->
+<!--  2020-05-21 - 2020-05-26 -->
+<!--  2020-05-28 - 2020-06-02 -->
+<!--  2020-06-04 - 2020-06-09 -->
+<!--  2020-06-11 - 2020-06-16 -->
+<!--  2020-06-18 - 2020-06-23 -->
+<!--  2020-06-25 - 2020-06-30  -->
+<!--  2020-07-02 - 2020-07-07 -->
+<!--  2020-07-09 - 2020-07-14 -->
+<!--  2020-07-16 - 2020-07-21 -->
+<!--  2020-08-19 - 2020-08-31 -->
+<!--  2020-09-02 - 2020-09-14 -->
+<!--  2020-09-16 - 2020-09-28 -->
+<!--  2020-09-30 - 2020-10-12 -->
+<!--  2020-10-14 - 2020-10-26 -->
+<!--  2020-10-28 - 2020-11-09 -->
+<!--  2020-11-11 - 2020-11-23 -->
+<!--  2020-11-25 - 2020-12-07 -->
+<!--  2020-12-09 - 2020-12-21  -->
+<!--  2021-01-06 - 2021-01-18 -->
+<!--  2021-01-20 - 2021-02-01  -->
+<!--  2021-02-03 - 2021-02-15 -->
+<!--  2021-02-17 - 2021-03-01 -->
+<!--  2021-03-03 - 2021-03-15 -->
+<!--  2021-03-17 - 2021-03-29 -->
+<!--  2021-04-14 - 2021-04-26 -->
+<!--  2021-04-28 - 2021-05-10 -->
+<!--  2021-05-12 - 2021-05-24  -->
+<!--  2021-05-26 - 2021-06-07 -->
+<!--  2021-06-09 - 2021-06-21 -->
+<!--  2021-06-23 - 2021-07-05  -->
+<!--  2021-07-21 - 2021-08-02 -->
+<!--  2021-08-04 - 2021-08-16 -->
+<!--  2021-08-18 - 2021-08-30 -->
+<!--  2021-09-01 - 2021-09-13 -->
+<!--  2021-09-15 - 2021-09-27 -->
+<!--  2021-09-29 - 2021-10-11" -->
+<!-- text_data <- text_data %>% -->
+<!--   str_split("\n| - ") -->
+
+<!-- text_data <- tibble(date = text_data) %>% -->
+<!--   unnest() %>% #the query saves as seconds since 1970 -->
+<!--   mutate(formatted_date = as.numeric(ymd(date)) * 24 * 60 * 60, start_end = "", week = NULL) -->
+
+<!-- #add end/start defintion -->
+
+<!-- for(i in 1:nrow(text_data)){ -->
+<!--   if(i%%2 == 1){ -->
+<!--     text_data$start_end[i] = "start" -->
+
+<!--   } -->
+<!--   else{ -->
+<!--     text_data$start_end[i] = "end" -->
+<!--   } -->
+<!--   text_data$week[i] = as.integer(i/2) + i%%2 -->
+<!-- } -->
+
+<!-- #finished dates -->
+
+<!-- #scrape URLS for search terms -->
+
+<!-- samplelink <- "https://redditsearch.io/?term=texas%20covid&dataviz=false&aggs=false&subreddits=&searchtype=posts&search=true&start=1597982400&end=1598760000&size=100" -->
+
+<!-- "askreddit,movies,music,todayilearned,science,politics,news,conservative" -->
+
+<!-- for(i in 1:39){ -->
+<!--   for(j in 1:50){ -->
+<!--     #query text with state name -->
+<!--     terms <- c("covid","mask","mandate","vaccine","lockdown") -->
+<!--     query = c() -->
+<!--     for(i in 1:length(terms)){ -->
+<!--       query[i] <- paste("https://redditsearch.io/?term=",  -->
+<!--                      state.name[j],  -->
+<!--                      "%20", -->
+<!--                      terms[i], -->
+<!--                      "&dataviz=false&aggs=false&subreddits=movies,music,todayilearned,science,politics,news,conservative&searchtype=posts&search=true&start=", -->
+<!--                      text_data$formatted_date[1+2*(i-1)], -->
+<!--                      "&end=", -->
+<!--                      text_data$formatted_date[2*i], -->
+<!--                      "&size=100", -->
+<!--                      sep = "") -->
+<!--     } -->
+<!--   } -->
+<!-- } -->
+<!-- #test code  -->
+<!-- j = 4 -->
+<!-- terms <- c("covid","mask","mandate","vaccine","lockdown") -->
+<!-- query = c() -->
+<!-- for(i in 1:length(terms)){ -->
+<!--   query[i] <- paste("https://redditsearch.io/?term=",  -->
+<!--                     state.name[j],"%20",terms[i], -->
+<!--                      "&dataviz=false&aggs=false&subreddits=movies,music,todayilearned,science,politics,news,conservative&searchtype=posts&search=true&start=", -->
+<!--                      text_data$formatted_date[1+2*(i-1)], -->
+<!--                      "&end=", -->
+<!--                      text_data$formatted_date[2*i], -->
+<!--                      "&size=100", -->
+<!--                      sep = "") -->
+<!-- } -->
+<!-- query -->
+<!-- ``` -->
+
+
+

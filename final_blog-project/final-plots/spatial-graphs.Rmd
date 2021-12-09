@@ -1,0 +1,297 @@
+---
+title: "spatial-graphs"
+author: "dm"
+date: "11/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+mental_health <- read_csv("../data/mental-health/mental_health.csv")
+mental_health_spatial <- mental_health %>%
+  rename(week = WEEK, state = State)
+
+mental_health_spatial$state <- tolower(mental_health_spatial$state)
+
+covid_19_spatial <- read_csv("../data/covid/covid_19_spatial.csv")
+```
+
+Using the code from the shiny app spatial part to capture specific ggplots of periods we are interested in. 
+```{r, fig.cap = "Fig. # - Control"}
+# Cases
+library(usmap)
+
+covdata <- covid_19_spatial %>%
+            filter(week %in% c(3:12,14:17,35:39))%>%
+            select(c("state", 
+                     "percentage_cases_bar",
+                     "percentage_deaths_bar")) %>%
+            group_by(state) %>%
+            summarize(percentage_cases_bar =
+                        mean(percentage_cases_bar),
+                      percentage_deaths_bar =
+                        mean(percentage_deaths_bar)) 
+
+plot_usmap(data = covdata, values = "percentage_cases_bar") +
+            viridis::scale_fill_viridis(name = "Percentages of Cases", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=17), 
+                  plot.subtitle = element_text(size=13),
+                  legend.text = element_text(size=12),
+                  legend.title = element_text(size=13),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(size = 8.5, hjust = 0)) +
+            labs(title = "The Distribution of Percentages of New COVID-19 Cases",
+                 subtitle = "During COVID-19 (Weeks 3-12, 14-17, 35-39)")
+
+
+# anxiety
+
+
+mendata <- mental_health_spatial %>%
+            filter(week %in% c(3:12,14:17,35:39))%>%
+            select(c("state", "anxiety_percentage", "depression_percentage")) %>%
+            group_by(state) %>%
+            summarize(
+              anxiety_percentage = mean(anxiety_percentage),
+              depression_percentage = mean(depression_percentage))
+
+plot_usmap(data = mendata, values = "anxiety_percentage") +
+            viridis::scale_fill_viridis(name = "Percentages of Anxiety", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=17), 
+                  plot.subtitle = element_text(size=13),
+                  legend.text = element_text(size=12),
+                  legend.title = element_text(size=13),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(hjust = 0)) +
+            labs(title = "The Distribution of Percentages of People Associated with Anxiety",
+                 subtitle = "During COVID-19 (Weeks 3-12, 14-17, 35-39)")
+```
+
+```{r}
+library(usmap)
+
+################# Week 12-14 ######################
+covdata <- covid_19_spatial %>%
+            filter(week %in% c(12:14))%>%
+            select(c("state", 
+                     "percentage_cases_bar",
+                     "percentage_deaths_bar")) %>%
+            group_by(state) %>%
+            summarize(percentage_cases_bar =
+                        mean(percentage_cases_bar),
+                      percentage_deaths_bar =
+                        mean(percentage_deaths_bar)) 
+
+plot_usmap(data = covdata, values = "percentage_cases_bar") +
+            viridis::scale_fill_viridis(name = "Percentages of Cases", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=17), 
+                  plot.subtitle = element_text(size=13),
+                  legend.text = element_text(size=12),
+                  legend.title = element_text(size=13),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(size = 8.5, hjust = 0)) +
+            labs(title = "The Distribution of Percentages of New COVID-19 Cases",
+                 subtitle = "During COVID-19 (Weeks 12-14)")
+
+################# Week 18-25 ######################
+covdata <- covid_19_spatial %>%
+            filter(week %in% c(18:25))%>%
+            select(c("state", 
+                     "percentage_cases_bar",
+                     "percentage_deaths_bar")) %>%
+            group_by(state) %>%
+            summarize(percentage_cases_bar =
+                        mean(percentage_cases_bar),
+                      percentage_deaths_bar =
+                        mean(percentage_deaths_bar)) 
+
+plot_usmap(data = covdata, values = "percentage_cases_bar") +
+            viridis::scale_fill_viridis(name = "Percentages of Cases", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=17), 
+                  plot.subtitle = element_text(size=13),
+                  legend.text = element_text(size=12),
+                  legend.title = element_text(size=13),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(size = 8.5, hjust = 0)) +
+            labs(title = "The Distribution of Percentages of New COVID-19 Cases",
+                 subtitle = "During COVID-19 (Weeks 18-25)")#
+
+################# Week 29-34 ######################
+covdata <- covid_19_spatial %>%
+            filter(week %in% c(29:34))%>%
+            select(c("state", 
+                     "percentage_cases_bar",
+                     "percentage_deaths_bar")) %>%
+            group_by(state) %>%
+            summarize(percentage_cases_bar =
+                        mean(percentage_cases_bar),
+                      percentage_deaths_bar =
+                        mean(percentage_deaths_bar)) 
+
+plot_usmap(data = covdata, values = "percentage_cases_bar") +
+            viridis::scale_fill_viridis(name = "Percentages of Cases", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=17), 
+                  plot.subtitle = element_text(size=13),
+                  legend.text = element_text(size=12),
+                  legend.title = element_text(size=13),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(size = 8.5, hjust = 0)) +
+            labs(title = "The Distribution of Percentages of New COVID-19 Cases",
+                 subtitle = "During COVID-19 (Weeks 29-34)")
+```
+
+```{r, fig.cap = "Fig. # - Mental health"}
+library(usmap)
+library(dplyr)
+library(tidyverse)
+
+
+############# Week 29:34 Anxiety ###############
+mendata <- mental_health_spatial %>%
+            filter(week %in% 29:34)%>%
+            select(c("state", "anxiety_percentage", "depression_percentage")) %>%
+            group_by(state) %>%
+            summarize(
+              anxiety_percentage = mean(anxiety_percentage),
+              depression_percentage = mean(depression_percentage))
+
+plot_usmap(data = mendata, values = "anxiety_percentage") +
+            viridis::scale_fill_viridis(name = "Percentages of Anxiety", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=17), 
+                  plot.subtitle = element_text(size=13),
+                  legend.text = element_text(size=12),
+                  legend.title = element_text(size=13),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(hjust = 0)) +
+            labs(title = "The Distribution of Percentages of People Associated with Anxiety",
+                 subtitle = "During COVID-19 (Weeks 29-34)")
+
+############# Week 18:25 Anxiety ###############
+mendata <- mental_health_spatial %>%
+            filter(week %in% 18:25)%>%
+            select(c("state", "anxiety_percentage", "depression_percentage")) %>%
+            group_by(state) %>%
+            summarize(
+              anxiety_percentage = mean(anxiety_percentage),
+              depression_percentage = mean(depression_percentage))
+
+plot_usmap(data = mendata, values = "anxiety_percentage") +
+            viridis::scale_fill_viridis(name = "Percentages of Anxiety", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=17), 
+                  plot.subtitle = element_text(size=13),
+                  legend.text = element_text(size=12),
+                  legend.title = element_text(size=13),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(hjust = 0)) +
+            labs(title = "The Distribution of Percentages of People Associated with Anxiety",
+                 subtitle = "During COVID-19 (Weeks 18-25)")
+
+############# Week 12:14 Anxiety ###############
+mendata <- mental_health_spatial %>%
+            filter(week %in% 12:14)%>%
+            select(c("state", "anxiety_percentage", "depression_percentage")) %>%
+            group_by(state) %>%
+            summarize(
+              anxiety_percentage = mean(anxiety_percentage),
+              depression_percentage = mean(depression_percentage))
+
+plot_usmap(data = mendata, values = "anxiety_percentage") +
+            viridis::scale_fill_viridis(name = "Percentages of Anxiety", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=17), 
+                  plot.subtitle = element_text(size=13),
+                  legend.text = element_text(size=12),
+                  legend.title = element_text(size=13),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(hjust = 0)) +
+            labs(title = "The Distribution of Percentages of People Associated with Anxiety",
+                 subtitle = "During COVID-19 (Weeks 12-14)")
+```
+
+```{r anxiety-graphs}
+############# Week 2 Anxiety ###############
+mendata <- mental_health_spatial %>%
+            filter(week == 2)%>%
+            select(c("state", "anxiety_percentage", "depression_percentage")) %>%
+            group_by(state) %>%
+            summarize(
+              anxiety_percentage = mean(anxiety_percentage),
+              depression_percentage = mean(depression_percentage))
+
+plot_usmap(data = mendata, values = "anxiety_percentage") +
+            viridis::scale_fill_viridis(name = "Percentages of Anxiety", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=17), 
+                  plot.subtitle = element_text(size=14),
+                  legend.text = element_text(size=13),
+                  legend.title = element_text(size=14),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(hjust = 0)) +
+            labs(title = "The Distribution of Percentages of People Associated with Anxiety",
+                 subtitle = "During COVID-19 (Week 2)")
+
+############# Week 3 Anxiety ###############
+mendata <- mental_health_spatial %>%
+            filter(week == 3)%>%
+            select(c("state", "anxiety_percentage", "depression_percentage")) %>%
+            group_by(state) %>%
+            summarize(
+              anxiety_percentage = mean(anxiety_percentage),
+              depression_percentage = mean(depression_percentage))
+
+plot_usmap(data = mendata, values = "anxiety_percentage") +
+            viridis::scale_fill_viridis(name = "Percentages of Anxiety", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=17), 
+                  plot.subtitle = element_text(size=14),
+                  legend.text = element_text(size=13),
+                  legend.title = element_text(size=14),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(hjust = 0)) +
+            labs(title = "The Distribution of Percentages of People Associated with Anxiety",
+                 subtitle = "During COVID-19 (Week 3)")
+
+############# Week 18 Anxiety ###############
+mendata <- mental_health_spatial %>%
+            filter(week == 18)%>%
+            select(c("state", "anxiety_percentage", "depression_percentage")) %>%
+            group_by(state) %>%
+            summarize(
+              anxiety_percentage = mean(anxiety_percentage),
+              depression_percentage = mean(depression_percentage))
+
+plot_usmap(data = mendata, values = "anxiety_percentage") +
+            viridis::scale_fill_viridis(name = "Percentages of Anxiety", option = "magma", direction = -1) +
+            theme_void() +
+            theme(plot.title = element_text(size=17), 
+                  plot.subtitle = element_text(size=14),
+                  legend.text = element_text(size=13),
+                  legend.title = element_text(size=14),
+                  legend.key.size = unit(1, 'cm'),
+                  plot.caption.position = "plot",
+                  plot.caption = element_text(hjust = 0)) +
+            labs(title = "The Distribution of Percentages of People Associated with Anxiety",
+                 subtitle = "During COVID-19 (Week 18)")
+```
